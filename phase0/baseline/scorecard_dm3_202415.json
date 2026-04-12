@@ -6,10 +6,13 @@
   "parser_version": "Phase 4B (2026-04-11)",
   "byte_accounting": {
     "file_size_bytes": 8395481,
-    "bytes_parsed": null,
-    "bytes_unknown": null,
-    "coverage_pct": null,
-    "status": "NOT_TRACKED"
+    "raw_size_bytes": 12697757,
+    "frame_bytes_parsed": 12697757,
+    "frame_coverage_pct": 100.0,
+    "frame_count": 203421,
+    "frame_errors": 0,
+    "message_level_parsed": null,
+    "status": "FRAME_LEVEL_COMPLETE"
   },
   "message_coverage": {
     "svc_types_defined": 40,

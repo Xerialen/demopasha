@@ -1,0 +1,87 @@
+[
+  {
+    "total_bytes": 13279818,
+    "bytes_consumed": 13279818,
+    "bytes_remaining": 0,
+    "coverage_pct": 100.0,
+    "frames": 207140,
+    "frame_types": {
+      "dem_all": 177923,
+      "dem_stats": 9778,
+      "dem_single": 17264,
+      "dem_multiple": 2175
+    },
+    "errors": [],
+    "file": "193240.mvd.gz",
+    "compressed_size": 8772393,
+    "raw_size": 13279818
+  },
+  {
+    "total_bytes": 13959738,
+    "bytes_consumed": 13959738,
+    "bytes_remaining": 0,
+    "coverage_pct": 100.0,
+    "frames": 203597,
+    "frame_types": {
+      "dem_all": 177376,
+      "dem_stats": 9978,
+      "dem_multiple": 2383,
+      "dem_single": 13860
+    },
+    "errors": [],
+    "file": "dm2_204035.mvd.gz",
+    "compressed_size": 9434047,
+    "raw_size": 13959738
+  },
+  {
+    "total_bytes": 12697757,
+    "bytes_consumed": 12697757,
+    "bytes_remaining": 0,
+    "coverage_pct": 100.0,
+    "frames": 203421,
+    "frame_types": {
+      "dem_all": 178046,
+      "dem_stats": 10034,
+      "dem_single": 13204,
+      "dem_multiple": 2137
+    },
+    "errors": [],
+    "file": "dm3_202415.mvd.gz",
+    "compressed_size": 8395481,
+    "raw_size": 12697757
+  },
+  {
+    "total_bytes": 13645207,
+    "bytes_consumed": 13645207,
+    "bytes_remaining": 0,
+    "coverage_pct": 100.0,
+    "frames": 208119,
+    "frame_types": {
+      "dem_all": 178036,
+      "dem_stats": 12295,
+      "dem_single": 14862,
+      "dem_multiple": 2926
+    },
+    "errors": [],
+    "file": "e1m2_189809.mvd.gz",
+    "compressed_size": 9266725,
+    "raw_size": 13645207
+  },
+  {
+    "total_bytes": 13138392,
+    "bytes_consumed": 13138392,
+    "bytes_remaining": 0,
+    "coverage_pct": 100.0,
+    "frames": 209057,
+    "frame_types": {
+      "dem_all": 178594,
+      "dem_stats": 11532,
+      "dem_single": 16454,
+      "dem_multiple": 2477
+    },
+    "errors": [],
+    "file": "schloss_199321.mvd.gz",
+    "compressed_size": 9028196,
+    "raw_size": 13138392
+  }
+]

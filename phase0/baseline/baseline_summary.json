@@ -10,7 +10,12 @@
     "phantombase"
   ],
   "aggregate_score": 36.0,
-  "byte_accounting": "NOT_TRACKED",
+  "byte_accounting": {
+    "frame_level": "100% \u2014 all frames walked, zero unknown types",
+    "message_level": "NOT_TRACKED \u2014 mimer does not report per-message byte accounting",
+    "total_raw_bytes": 66720912,
+    "total_frames": 1031334
+  },
   "message_coverage": "NOT_TRACKED",
   "hidden_msg_coverage_pct": 50.0,
   "entity_failure_rate_pct": 3.5,
