@@ -2039,6 +2039,26 @@ function valDrawFrame() {
     }
   }
 
+  // Draw item spawn indicators
+  const valItemStates = getItemStates(valDemo.itemEvents, valTime);
+  const valShowPowerups = document.getElementById('showItemsPowerups')?.checked ?? true;
+  const valShowWeapons = document.getElementById('showItemsWeapons')?.checked ?? true;
+  const valShowArmor = document.getElementById('showItemsArmor')?.checked ?? true;
+
+  for (const st of Object.values(valItemStates)) {
+    const ik = itemKey(st.item);
+    if (!ik) continue;
+    const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
+    const isWeapon = ik === 'rl' || ik === 'lg';
+    const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
+    if (isPowerup && !valShowPowerups) continue;
+    if (isWeapon && !valShowWeapons) continue;
+    if (isArmor && !valShowArmor) continue;
+
+    const [ix, iy] = valWorldToCanvas(st.x, st.y);
+    drawItemShape(valCtx, ix, iy, ik, st.available ? 0.7 : 0.15);
+  }
+
   // Player dots
   for (const player of valDemo.players) {
     if (!valEnabledTeams.has(player.team) || !valEnabledPlayers.has(player.name)) continue;
@@ -2051,7 +2071,18 @@ function valDrawFrame() {
     const [cx, cy] = valWorldToCanvas(pos.x, pos.y);
     const isTracked = valPov === player.name;
 
-    // POV highlight ring
+    // Powerup glow (behind everything)
+    if (pos.alive && pos.flags) {
+      if (pos.flags & 4) drawPowerupGlow(valCtx, cx, cy, 'quad');
+      if (pos.flags & 8) drawPowerupGlow(valCtx, cx, cy, 'pent');
+    }
+
+    // View cone (behind dot)
+    if (pos.alive && pos.yaw !== undefined) {
+      drawViewCone(valCtx, cx, cy, pos.yaw, 30, 40, color.cone);
+    }
+
+    // POV highlight ring (behind dot, above cone)
     if (isTracked && pos.alive) {
       valCtx.strokeStyle = '#ff6';
       valCtx.lineWidth = 3;
@@ -2069,6 +2100,11 @@ function valDrawFrame() {
       valCtx.strokeStyle = 'rgba(255,255,255,0.4)';
       valCtx.lineWidth = 1;
       valCtx.stroke();
+    }
+
+    // Weapon pips
+    if (pos.alive && pos.flags) {
+      drawWeaponPips(valCtx, cx, cy, pos.flags);
     }
 
     // Name labels
@@ -2320,6 +2356,10 @@ function valUpdateThreePlayers() {
     const color = VAL_TEAM_COLORS_3D[teamIdx % VAL_TEAM_COLORS_3D.length];
     const isTracked = valPov === player.name;
 
+    const group = new THREE.Group();
+    group.position.set(pos.x, pos.y, pos.z + 24);
+
+    // Player sphere
     const radius = pos.alive ? (isTracked ? 20 : 16) : 10;
     const sphereGeo = new THREE.SphereGeometry(radius, 12, 8);
     const sphereMat = new THREE.MeshPhongMaterial({
@@ -2329,21 +2369,54 @@ function valUpdateThreePlayers() {
       transparent: !pos.alive,
       opacity: pos.alive ? 1.0 : 0.4,
     });
-    const sphere = new THREE.Mesh(sphereGeo, sphereMat);
-    sphere.position.set(pos.x, pos.y, pos.z + 24);
-    valThreeScene.add(sphere);
+    group.add(new THREE.Mesh(sphereGeo, sphereMat));
 
-    // POV ring in 3D
+    // View cone (alive only)
+    if (pos.alive && pos.yaw !== undefined) {
+      const coneLen = 40;
+      const halfAngle = 20 * Math.PI / 180;
+      const coneRadius = coneLen * Math.tan(halfAngle);
+      const coneGeo = new THREE.ConeGeometry(coneRadius, coneLen, 16, 1, true);
+      coneGeo.rotateZ(-Math.PI / 2);
+      coneGeo.translate(coneLen / 2, 0, 0);
+      const coneMat = new THREE.MeshBasicMaterial({
+        color, transparent: true, opacity: 0.15,
+        side: THREE.DoubleSide, depthWrite: false,
+      });
+      const cone = new THREE.Mesh(coneGeo, coneMat);
+      cone.rotation.z = pos.yaw * Math.PI / 180;
+      group.add(cone);
+    }
+
+    // Powerup glow
+    const flags = pos.flags || 0;
+    if (pos.alive && (flags & 4 || flags & 8)) {
+      const glowColor = (flags & 4) ? 0x00ffff : 0xff8800;
+      const ringGeo = new THREE.RingGeometry(20, 25, 32);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: glowColor, transparent: true, opacity: 0.4,
+        side: THREE.DoubleSide, depthWrite: false,
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.z = -22;
+      group.add(ring);
+      group.add(new THREE.PointLight(glowColor, 0.8, 80));
+    }
+
+    // POV ring in 3D (separate mesh, not in group, so it stays at base z)
     if (isTracked && pos.alive) {
       const ringGeo = new THREE.RingGeometry(24, 28, 24);
       const ringMat = new THREE.MeshBasicMaterial({ color: 0xffff44, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
       const ring = new THREE.Mesh(ringGeo, ringMat);
       ring.position.set(pos.x, pos.y, pos.z + 2);
-      ring.rotation.x = 0;
       valThreeScene.add(ring);
       valPlayerSpheres[player.name + '_ring'] = { mesh: ring, label: null };
     }
 
+    valThreeScene.add(group);
+
+    // Name label sprite
     const canvas2 = document.createElement('canvas');
     canvas2.width = 256; canvas2.height = 64;
     const c2 = canvas2.getContext('2d');
@@ -2361,7 +2434,48 @@ function valUpdateThreePlayers() {
     sprite.scale.set(120, 30, 1);
     valThreeScene.add(sprite);
 
-    valPlayerSpheres[player.name] = { mesh: sphere, label: sprite };
+    valPlayerSpheres[player.name] = { mesh: group, label: sprite };
+  }
+
+  // Remove old item meshes
+  if (window._valThreeItemMeshes) {
+    for (const m of window._valThreeItemMeshes) valThreeScene.remove(m);
+  }
+  window._valThreeItemMeshes = [];
+
+  const valItemStates3d = getItemStates(valDemo.itemEvents, valTime);
+  const valShowPowerups3d = document.getElementById('showItemsPowerups')?.checked ?? true;
+  const valShowWeapons3d = document.getElementById('showItemsWeapons')?.checked ?? true;
+  const valShowArmor3d = document.getElementById('showItemsArmor')?.checked ?? true;
+
+  for (const st of Object.values(valItemStates3d)) {
+    const ik = itemKey(st.item);
+    if (!ik) continue;
+    const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
+    const isWeapon = ik === 'rl' || ik === 'lg';
+    const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
+    if (isPowerup && !valShowPowerups3d) continue;
+    if (isWeapon && !valShowWeapons3d) continue;
+    if (isArmor && !valShowArmor3d) continue;
+
+    const hex = parseInt((ITEM_COLORS[ik] || '#888888').replace('#', ''), 16);
+    const opacity = st.available ? 0.7 : 0.15;
+
+    let geo;
+    if (ik === 'quad') geo = new THREE.OctahedronGeometry(10);
+    else if (ik === 'pent') geo = new THREE.DodecahedronGeometry(10);
+    else if (ik === 'ring') geo = new THREE.TorusGeometry(8, 2, 8, 16);
+    else if (ik === 'ra' || ik === 'ya' || ik === 'ga') geo = new THREE.ConeGeometry(8, 12, 3);
+    else geo = new THREE.BoxGeometry(8, 8, 8);
+
+    const mat = new THREE.MeshStandardMaterial({
+      color: hex, emissive: hex, emissiveIntensity: st.available ? 0.5 : 0.05,
+      transparent: true, opacity,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(st.x, st.y, st.z + 10);
+    valThreeScene.add(mesh);
+    window._valThreeItemMeshes.push(mesh);
   }
 
   // Kill markers
