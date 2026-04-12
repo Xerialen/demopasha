@@ -54,6 +54,7 @@ def process_demo(demo_path, map_name):
     snapshots_raw = pt.get("snapshots", [])
     item_events = pt.get("item_events", [])
     static_items = pt.get("static_items", [])
+    powerup_events = pt.get("powerup_events", [])
 
     player_lookup = {p["num"]: {"name": p["name"], "team": p["team"]} for p in players_meta}
 
@@ -105,6 +106,7 @@ def process_demo(demo_path, map_name):
         "kills": kills,
         "itemEvents": item_events,
         "staticItems": static_items,
+        "powerupEvents": powerup_events,
     }
 
 
