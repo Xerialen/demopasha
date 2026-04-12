@@ -1437,7 +1437,7 @@ function updateThreePlayers() {
       const halfAngle = 20 * Math.PI / 180;
       const coneRadius = coneLen * Math.tan(halfAngle);
       const coneGeo = new THREE.ConeGeometry(coneRadius, coneLen, 16, 1, true);
-      coneGeo.rotateZ(-Math.PI / 2);
+      coneGeo.rotateZ(Math.PI / 2);  // apex at player (-X after rotation), base extends +X
       coneGeo.translate(coneLen / 2 + radius, 0, 0);  // start at sphere edge, not center
       const coneMat = new THREE.MeshBasicMaterial({
         color, transparent: true, opacity: 0.35,
@@ -2413,7 +2413,7 @@ function valUpdateThreePlayers() {
       const halfAngle = 20 * Math.PI / 180;
       const coneRadius = coneLen * Math.tan(halfAngle);
       const coneGeo = new THREE.ConeGeometry(coneRadius, coneLen, 16, 1, true);
-      coneGeo.rotateZ(-Math.PI / 2);
+      coneGeo.rotateZ(Math.PI / 2);  // apex at player (-X after rotation), base extends +X
       coneGeo.translate(coneLen / 2, 0, 0);
       const coneMat = new THREE.MeshBasicMaterial({
         color, transparent: true, opacity: 0.15,
