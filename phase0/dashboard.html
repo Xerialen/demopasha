@@ -15,11 +15,12 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #111; color: #ccc; font-family: 'Consolas', 'Menlo', monospace; font-size: 13px; }
 
-.container { display: flex; height: 100vh; }
+.container { display: flex; height: calc(100vh - 37px); }
 .sidebar { width: 260px; padding: 12px; background: #1a1a1a; border-right: 1px solid #333; overflow-y: auto; flex-shrink: 0; }
-.main { flex: 1; display: flex; flex-direction: column; }
-.canvas-wrap { flex: 1; position: relative; overflow: hidden; }
-canvas { position: absolute; top: 0; left: 0; }
+.main { flex: 1; display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.canvas-wrap { flex: 1; position: relative; overflow: hidden; min-height: 0; }
+#mapCanvas, #overlayCanvas { position: absolute; top: 0; left: 0; }
+#threeContainer canvas { display: block; width: 100%; height: 100%; }
 .timeline-bar { padding: 8px 16px 12px; background: #1a1a1a; border-top: 1px solid #333; }
 
 h1 { font-size: 15px; color: #e8e8e8; margin-bottom: 8px; letter-spacing: 1px; }
@@ -65,7 +66,7 @@ input[type="range"] { flex: 1; accent-color: #e44; }
 .tab-btn:hover { color: #aaa; }
 .tab-btn.active { color: #e8e8e8; border-bottom-color: #e44; }
 .tab-content { display: none; }
-.tab-content.active { display: flex; flex: 1; }
+.tab-content.active { display: block; }
 
 /* --- Data Quality tab --- */
 .dq-page { flex: 1; overflow-y: auto; padding: 24px 32px; background: #111; }
@@ -102,10 +103,10 @@ input[type="range"] { flex: 1; accent-color: #e44; }
   <button class="tab-btn" data-tab="quality">Data Quality</button>
 </div>
 
-<div class="tab-content active" data-tab="replay" style="height: calc(100vh - 37px);">
-<div class="container" style="height:100%;">
+<div class="tab-content active" data-tab="replay">
+<div class="container">
   <div class="sidebar">
-    <h1>demopasha</h1>
+    <h1>DEMOPASHA</h1>
 
     <h2>Demo</h2>
     <select class="demo-select" id="demoSelect"></select>
@@ -115,7 +116,7 @@ input[type="range"] { flex: 1; accent-color: #e44; }
 
     <h2>View</h2>
     <div class="trail-control">
-      <button class="play-btn" id="viewToggle" style="width:100%">Switch to 3D</button>
+      <button class="play-btn" id="viewToggle" style="width:100%">Switch to 2D</button>
     </div>
 
     <h2>Display</h2>
@@ -150,9 +151,9 @@ input[type="range"] { flex: 1; accent-color: #e44; }
 
   <div class="main">
     <div class="canvas-wrap" id="canvasWrap">
-      <canvas id="mapCanvas"></canvas>
-      <canvas id="overlayCanvas"></canvas>
-      <div id="threeContainer" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%;"></div>
+      <canvas id="mapCanvas" style="display:none;"></canvas>
+      <canvas id="overlayCanvas" style="display:none;"></canvas>
+      <div id="threeContainer" style="position:absolute; top:0; left:0; width:100%; height:100%;"></div>
     </div>
     <div class="timeline-bar">
       <div class="timeline-row">
@@ -176,7 +177,7 @@ input[type="range"] { flex: 1; accent-color: #e44; }
   </div>
 
   <div class="dq-score-big">
-    <div class="number" style="color: #e44;">36%</div>
+    <div class="number" style="color: #e44;">38%</div>
     <div class="label">mimer baseline (pre-north-star)</div>
     <div style="margin-left: 24px; font-size: 14px; color: #555;">vs</div>
     <div class="number" style="color: #4c8;">100%</div>
@@ -243,10 +244,10 @@ function resizeCanvases() {
   const wrap = document.getElementById('canvasWrap');
   const w = wrap.clientWidth;
   const h = wrap.clientHeight;
+  if (w === 0 || h === 0) return;
   mapCanvas.width = w; mapCanvas.height = h;
   overlayCanvas.width = w; overlayCanvas.height = h;
-  drawMap();
-  drawFrame();
+  if (viewMode === '2d') { drawMap(); drawFrame(); }
 }
 
 function drawMap() {
@@ -588,14 +589,20 @@ async function init() {
     lastFrameTime = 0;
   });
 
-  // Speed
+  // Speed — cycles 1x → 2x → 4x → 8x → 1x
   const speeds = [1, 2, 4, 8];
   let speedIdx = 0;
-  document.getElementById('speedBtn').addEventListener('click', () => {
-    speedIdx = (speedIdx + 1) % speeds.length;
+  const speedBtn = document.getElementById('speedBtn');
+  const speedLabel = document.getElementById('speedLabel');
+  function updateSpeedUI() {
     playSpeed = speeds[speedIdx];
-    document.getElementById('speedLabel').textContent = `${playSpeed}x`;
-    document.getElementById('speedBtn').textContent = `${speeds[(speedIdx + 1) % speeds.length]}x`;
+    speedLabel.textContent = `${playSpeed}x`;
+    speedBtn.textContent = `${speeds[(speedIdx + 1) % speeds.length]}x`;
+  }
+  updateSpeedUI();
+  speedBtn.addEventListener('click', () => {
+    speedIdx = (speedIdx + 1) % speeds.length;
+    updateSpeedUI();
   });
 
   // Display toggles
@@ -614,13 +621,19 @@ async function init() {
   // Load first demo
   if (data.demos.length > 0) loadDemo(0);
 
+  // Start in 3D mode
+  initThree().then(() => loadThreeMap()).then(() => {
+    resizeThree();
+    updateThreePlayers();
+  });
+
   // Start animation loop
   requestAnimationFrame(animate);
 }
 
 // --- 3D View ---
 
-let viewMode = '2d';
+let viewMode = '3d';
 let threeScene, threeCamera, threeRenderer, threeControls;
 let bspMeshGroup = null;
 let playerSpheres = {};
@@ -634,6 +647,17 @@ const TEAM_COLORS_3D = [
   0xe6b428,
 ];
 
+function resizeThree() {
+  if (!threeRenderer) return;
+  const container = document.getElementById('threeContainer');
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  if (w === 0 || h === 0) return;
+  threeRenderer.setSize(w, h, false);
+  threeCamera.aspect = w / h;
+  threeCamera.updateProjectionMatrix();
+}
+
 async function initThree() {
   if (three_inited) return;
   const container = document.getElementById('threeContainer');
@@ -641,14 +665,16 @@ async function initThree() {
   threeScene = new THREE.Scene();
   threeScene.background = new THREE.Color(0x111111);
 
-  threeCamera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 1, 20000);
+  const w = Math.max(container.clientWidth, 800);
+  const h = Math.max(container.clientHeight, 600);
+  threeCamera = new THREE.PerspectiveCamera(60, w / h, 1, 20000);
   threeCamera.position.set(500, 500, 1500);
   threeCamera.up.set(0, 0, 1);
 
   threeRenderer = new THREE.WebGLRenderer({ antialias: true });
-  threeRenderer.setSize(container.clientWidth, container.clientHeight);
   threeRenderer.setPixelRatio(window.devicePixelRatio);
   container.appendChild(threeRenderer.domElement);
+  resizeThree();
 
   threeControls = new OrbitControls(threeCamera, threeRenderer.domElement);
   threeControls.target.set(500, 100, 0);
@@ -812,6 +838,7 @@ function updateThreePlayers() {
 
 function renderThree() {
   if (viewMode !== '3d' || !threeRenderer) return;
+  resizeThree();
   threeControls.update();
   threeRenderer.render(threeScene, threeCamera);
 }
@@ -829,10 +856,7 @@ function toggleView() {
     overC.style.display = 'none';
     threeC.style.display = 'block';
     initThree().then(() => loadThreeMap()).then(() => {
-      const container = document.getElementById('threeContainer');
-      threeCamera.aspect = container.clientWidth / container.clientHeight;
-      threeCamera.updateProjectionMatrix();
-      threeRenderer.setSize(container.clientWidth, container.clientHeight);
+      resizeThree();
       updateThreePlayers();
     });
   } else {
@@ -848,15 +872,8 @@ function toggleView() {
 
 document.getElementById('viewToggle').addEventListener('click', toggleView);
 
-// Resize handler for 3D
-window.addEventListener('resize', () => {
-  if (viewMode === '3d' && threeRenderer) {
-    const container = document.getElementById('threeContainer');
-    threeCamera.aspect = container.clientWidth / container.clientHeight;
-    threeCamera.updateProjectionMatrix();
-    threeRenderer.setSize(container.clientWidth, container.clientHeight);
-  }
-});
+// Window resize also triggers 3D resize
+window.addEventListener('resize', resizeThree);
 
 // --- Tab switching ---
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -866,7 +883,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.querySelector(`.tab-content[data-tab="${btn.dataset.tab}"]`).classList.add('active');
     if (btn.dataset.tab === 'replay') {
-      resizeCanvases();
+      setTimeout(resizeCanvases, 50);
     }
   });
 });
@@ -924,38 +941,11 @@ const DQ_METRICS = [
     targetRaw: 33,
   },
   {
-    title: "Stat Index Coverage",
-    why: "QuakeWorld tracks 32 stat indices per player per frame: health, armor, ammo for each type, active weapon, items held, and more. Mimer only tracks 4, missing 28 indices of per-frame player state.",
-    baseline: 12.5,
-    baselineLabel: "4 of 32",
-    baselineDetail: "Tracks: STAT_ITEMS, STAT_HEALTH, STAT_ARMOR, STAT_ACTIVEWEAPON. Ignores: STAT_WEAPON, STAT_AMMO, STAT_SHELLS, STAT_NAILS, STAT_ROCKETS, STAT_CELLS, and 22 others.",
-    demopasha: null,
-    target: 100,
-  },
-  {
-    title: "KTXstats Field Extraction",
-    why: "KTXstats is the authoritative end-of-match statistics block from the KTX server mod. It contains accuracy, EWEP, transfers, spawn frags, and speed — ground truth for cross-checking parser-derived stats.",
-    baseline: 75,
-    baselineLabel: "15 of 20 fields",
-    baselineDetail: "Extracts: frags, deaths, suicides, teamkills, damage (given/taken/team), ewep, spawn_frags, speed, rl/lg accuracy, xfer_rl/lg. Missing: top_weapon, spree_max, spree_quad, control_pct, avg_alive_time.",
-    demopasha: null,
-    target: 100,
-  },
-  {
     title: "BSP Lump Coverage",
     why: "BSP v29 has 15 lumps containing map geometry, collision data, visibility sets, textures, and lighting. Mimer reads only the entity lump (item/weapon spawn coordinates). Without the other 14, there's no wall-aware spatial analysis.",
     baseline: 6.7,
     baselineLabel: "1 of 15 lumps",
     baselineDetail: "Reads: entities (partial — 17 classnames). Ignores: planes, vertexes, faces, edges, surfedges, clipnodes, nodes, leaves, marksurfaces, texinfo, miptex, lightmaps, visibility, models.",
-    demopasha: null,
-    target: 100,
-  },
-  {
-    title: "Loc File Coverage",
-    why: "Loc files map 3D coordinates to human-readable zone names (\"rl\", \"quad\", \"mega\"). Without them, player positions are raw numbers with no tactical meaning. 4 of 5 test maps have no loc file on disk.",
-    baseline: 20,
-    baselineLabel: "1 of 5 maps",
-    baselineDetail: "Only phantombase.loc exists. dm2, dm3, schloss, e1m2 have no loc files installed. Loc parser also silently skips malformed lines.",
     demopasha: null,
     target: 100,
   },
