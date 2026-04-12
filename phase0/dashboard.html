@@ -179,15 +179,18 @@ input[type="range"] { flex: 1; accent-color: #e44; }
   <div class="dq-score-big">
     <div class="number" style="color: #e44;">38%</div>
     <div class="label">mimer baseline (pre-north-star)</div>
-    <div style="margin-left: 24px; font-size: 14px; color: #555;">vs</div>
+    <div style="margin-left: 24px; font-size: 14px; color: #555;">→</div>
+    <div class="number" id="dqCurrentScore" style="color: #48f;">38%</div>
+    <div class="label">demopasha (current)</div>
+    <div style="margin-left: 24px; font-size: 14px; color: #555;">→</div>
     <div class="number" style="color: #4c8;">100%</div>
-    <div class="label">demopasha target</div>
+    <div class="label">target</div>
   </div>
 
   <div class="dq-legend">
-    <div class="dq-legend-item"><div class="dq-legend-dot" style="background:#e44;"></div> Mimer baseline (measured)</div>
-    <div class="dq-legend-item"><div class="dq-legend-dot" style="background:#4c8;"></div> demopasha (current)</div>
-    <div class="dq-legend-item"><div class="dq-legend-dot" style="background:#333;border:1px dashed #555;"></div> Target (100%)</div>
+    <div class="dq-legend-item"><div class="dq-legend-dot" style="background:#e44;"></div> Mimer baseline</div>
+    <div class="dq-legend-item"><div class="dq-legend-dot" style="background:#48f;"></div> demopasha (current)</div>
+    <div class="dq-legend-item"><div class="dq-legend-dot" style="background:#4c8;"></div> Target (100%)</div>
   </div>
 
   <div class="dq-grid" id="dqGrid"></div>
@@ -985,29 +988,28 @@ function renderDQCards() {
 
     let barsHtml = '';
 
-    // Baseline bar
+    // Baseline bar — always red
     barsHtml += `
       <div class="dq-bar-wrap">
         <div class="dq-bar-label">
-          <span class="name">Mimer (pre-north-star)</span>
-          <span class="val" style="color:${baselineColor}">${m.baselineLabel}</span>
+          <span class="name">Mimer baseline</span>
+          <span class="val" style="color:#e44">${m.baselineLabel}</span>
         </div>
         <div class="dq-bar">
-          <div class="dq-bar-fill baseline" style="width:${baselinePct}%; background:${baselineColor};"></div>
+          <div class="dq-bar-fill" style="width:${baselinePct}%; background:#e44;"></div>
         </div>
       </div>`;
 
-    // demopasha bar
+    // demopasha bar — always blue
     if (demopashaPct !== null) {
-      const dpColor = demopashaPct >= 90 ? '#4c8' : demopashaPct >= 50 ? '#da4' : '#e44';
       barsHtml += `
         <div class="dq-bar-wrap">
           <div class="dq-bar-label">
             <span class="name">demopasha</span>
-            <span class="val" style="color:${dpColor}">${m.demopashaLabel || demopashaPct + '%'}</span>
+            <span class="val" style="color:#48f">${m.demopashaLabel || demopashaPct + '%'}</span>
           </div>
           <div class="dq-bar">
-            <div class="dq-bar-fill demopasha" style="width:${demopashaPct}%;"></div>
+            <div class="dq-bar-fill" style="width:${demopashaPct}%; background:#48f;"></div>
           </div>
         </div>`;
     } else {
@@ -1018,20 +1020,20 @@ function renderDQCards() {
             <span class="val" style="color:#555">not started</span>
           </div>
           <div class="dq-bar">
-            <div class="dq-bar-fill demopasha" style="width:0%;"></div>
+            <div class="dq-bar-fill" style="width:0%; background:#48f;"></div>
           </div>
         </div>`;
     }
 
-    // Target bar
+    // Target bar — always green
     barsHtml += `
       <div class="dq-bar-wrap">
         <div class="dq-bar-label">
           <span class="name">Target</span>
-          <span class="val" style="color:#666">${m.targetLabel || '100%'}</span>
+          <span class="val" style="color:#4c8">${m.targetLabel || '100%'}</span>
         </div>
         <div class="dq-bar">
-          <div class="dq-bar-fill" style="width:100%; background:#222; border:1px dashed #444; box-sizing:border-box;"></div>
+          <div class="dq-bar-fill" style="width:100%; background:#4c8; opacity:0.3;"></div>
         </div>
       </div>`;
 
@@ -1044,6 +1046,15 @@ function renderDQCards() {
 
     grid.appendChild(card);
   }
+
+  // Compute aggregate demopasha current score
+  const measurable = DQ_METRICS.filter(m => m.demopasha !== null);
+  const currentPct = measurable.length > 0
+    ? Math.round(measurable.reduce((s, m) => s + m.demopasha, 0) / DQ_METRICS.length)
+    : Math.round(DQ_METRICS.filter(m => m.baseline !== null).reduce((s, m) => s + m.baseline, 0) / DQ_METRICS.filter(m => m.baseline !== null).length);
+  const el = document.getElementById('dqCurrentScore');
+  el.textContent = currentPct + '%';
+  el.style.color = '#48f';
 }
 
 renderDQCards();
