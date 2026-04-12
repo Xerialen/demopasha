@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>demopasha — dm3 position viewer</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #111; color: #ccc; font-family: 'Consolas', 'Menlo', monospace; font-size: 13px; }
+
+.container { display: flex; height: 100vh; }
+.sidebar { width: 260px; padding: 12px; background: #1a1a1a; border-right: 1px solid #333; overflow-y: auto; flex-shrink: 0; }
+.main { flex: 1; display: flex; flex-direction: column; }
+.canvas-wrap { flex: 1; position: relative; overflow: hidden; }
+canvas { position: absolute; top: 0; left: 0; }
+.timeline-bar { padding: 8px 16px 12px; background: #1a1a1a; border-top: 1px solid #333; }
+
+h1 { font-size: 15px; color: #e8e8e8; margin-bottom: 8px; letter-spacing: 1px; }
+h2 { font-size: 12px; color: #888; margin: 12px 0 6px; text-transform: uppercase; letter-spacing: 1px; }
+
+.demo-select { width: 100%; background: #222; color: #ccc; border: 1px solid #444; padding: 4px; font-family: inherit; font-size: 12px; margin-bottom: 8px; }
+
+.team-group { margin-bottom: 8px; padding: 6px; border-radius: 4px; }
+.team-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; cursor: pointer; }
+.team-dot { width: 10px; height: 10px; border-radius: 50%; }
+.team-name { font-weight: bold; font-size: 12px; }
+
+.player-row { display: flex; align-items: center; gap: 6px; padding: 2px 0 2px 16px; cursor: pointer; }
+.player-row:hover { background: rgba(255,255,255,0.05); }
+.player-dot { width: 8px; height: 8px; border-radius: 50%; }
+.player-name { font-size: 12px; }
+.player-stats { font-size: 10px; color: #666; margin-left: auto; }
+
+input[type="checkbox"] { accent-color: #888; }
+
+.timeline-row { display: flex; align-items: center; gap: 12px; }
+.time-label { font-size: 13px; color: #aaa; min-width: 70px; font-variant-numeric: tabular-nums; }
+input[type="range"] { flex: 1; accent-color: #e44; }
+.play-btn { background: #333; border: 1px solid #555; color: #ccc; padding: 4px 12px; cursor: pointer; font-family: inherit; font-size: 12px; border-radius: 3px; }
+.play-btn:hover { background: #444; }
+.speed-label { font-size: 11px; color: #666; min-width: 30px; }
+
+.kill-feed { margin-top: 6px; max-height: 60px; overflow-y: auto; font-size: 11px; color: #888; }
+.kill-entry { padding: 1px 0; }
+.kill-entry .killer { font-weight: bold; }
+.kill-entry .victim { font-weight: bold; }
+.kill-entry .weapon { color: #666; }
+
+.trail-control { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.trail-control label { font-size: 11px; color: #888; }
+.trail-control input { width: 50px; background: #222; color: #ccc; border: 1px solid #444; padding: 2px 4px; font-size: 11px; }
+
+.info-panel { font-size: 11px; color: #666; margin-top: 12px; padding-top: 8px; border-top: 1px solid #333; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="sidebar">
+    <h1>demopasha</h1>
+
+    <h2>Demo</h2>
+    <select class="demo-select" id="demoSelect"></select>
+
+    <h2>Teams</h2>
+    <div id="teamFilters"></div>
+
+    <h2>View</h2>
+    <div class="trail-control">
+      <button class="play-btn" id="viewToggle" style="width:100%">Switch to 3D</button>
+    </div>
+
+    <h2>Display</h2>
+    <div class="trail-control">
+      <input type="checkbox" id="showTrail" checked>
+      <label for="showTrail">Show trail</label>
+      <input type="number" id="trailLength" value="10" min="1" max="60">
+      <label for="trailLength">sec</label>
+    </div>
+    <div class="trail-control">
+      <input type="checkbox" id="showNames" checked>
+      <label for="showNames">Show names</label>
+    </div>
+    <div class="trail-control">
+      <input type="checkbox" id="showDeadPlayers">
+      <label for="showDeadPlayers">Show dead</label>
+    </div>
+    <div class="trail-control">
+      <input type="checkbox" id="showKillMarkers" checked>
+      <label for="showKillMarkers">Kill markers</label>
+    </div>
+
+    <h2>Hub links</h2>
+    <div class="trail-control">
+      <label for="hubGameId" style="font-size:11px;color:#888;">Game ID:</label>
+      <input type="text" id="hubGameId" value="202415" style="width:80px;background:#222;color:#ccc;border:1px solid #444;padding:2px 4px;font-size:11px;">
+    </div>
+    <div id="hubLinks" style="margin-top:4px;font-size:11px;"></div>
+
+    <div class="info-panel" id="infoPanel"></div>
+  </div>
+
+  <div class="main">
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="mapCanvas"></canvas>
+      <canvas id="overlayCanvas"></canvas>
+      <div id="threeContainer" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%;"></div>
+    </div>
+    <div class="timeline-bar">
+      <div class="timeline-row">
+        <button class="play-btn" id="playBtn">▶</button>
+        <span class="time-label" id="timeLabel">0:00 / 0:00</span>
+        <input type="range" id="timeline" min="0" max="600" step="0.1" value="0">
+        <span class="speed-label" id="speedLabel">1x</span>
+        <button class="play-btn" id="speedBtn">2x</button>
+      </div>
+      <div class="kill-feed" id="killFeed"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const TEAM_COLORS = [
+  {bg: 'rgba(230, 60, 60, 0.9)', trail: 'rgba(230, 60, 60, 0.25)', dead: 'rgba(230, 60, 60, 0.3)'},
+  {bg: 'rgba(60, 130, 230, 0.9)', trail: 'rgba(60, 130, 230, 0.25)', dead: 'rgba(60, 130, 230, 0.3)'},
+  {bg: 'rgba(60, 200, 80, 0.9)', trail: 'rgba(60, 200, 80, 0.25)', dead: 'rgba(60, 200, 80, 0.3)'},
+  {bg: 'rgba(230, 180, 40, 0.9)', trail: 'rgba(230, 180, 40, 0.25)', dead: 'rgba(230, 180, 40, 0.3)'},
+];
+
+let data = null;
+let mapImg = null;
+let currentDemo = null;
+let currentMap = null;
+let currentTime = 0;
+let playing = false;
+let playSpeed = 1;
+let lastFrameTime = 0;
+let enabledTeams = new Set();
+let enabledPlayers = new Set();
+let teamColorMap = {};
+
+const mapCanvas = document.getElementById('mapCanvas');
+const overlayCanvas = document.getElementById('overlayCanvas');
+const mapCtx = mapCanvas.getContext('2d');
+const ctx = overlayCanvas.getContext('2d');
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+function worldToCanvas(x, y) {
+  if (!currentMap) return [0, 0];
+  const margin = 10;
+  const rangeX = currentMap.world_maxs[0] - currentMap.world_mins[0];
+  const rangeY = currentMap.world_maxs[1] - currentMap.world_mins[1];
+  const scale = Math.min((mapCanvas.width - 2 * margin) / rangeX, (mapCanvas.height - 2 * margin) / rangeY);
+  return [
+    margin + (x - currentMap.world_mins[0]) * scale,
+    margin + (y - currentMap.world_mins[1]) * scale,
+  ];
+}
+
+function resizeCanvases() {
+  const wrap = document.getElementById('canvasWrap');
+  const w = wrap.clientWidth;
+  const h = wrap.clientHeight;
+  mapCanvas.width = w; mapCanvas.height = h;
+  overlayCanvas.width = w; overlayCanvas.height = h;
+  drawMap();
+  drawFrame();
+}
+
+function drawMap() {
+  mapCtx.fillStyle = '#000';
+  mapCtx.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
+  if (mapImg) {
+    const aspect = mapImg.width / mapImg.height;
+    let dw = mapCanvas.width, dh = mapCanvas.height;
+    if (dw / dh > aspect) { dw = dh * aspect; } else { dh = dw / aspect; }
+    mapCtx.drawImage(mapImg, (mapCanvas.width - dw) / 2, (mapCanvas.height - dh) / 2, dw, dh);
+  }
+}
+
+function getSnapshotAt(t) {
+  if (!currentDemo) return null;
+  const snaps = currentDemo.snapshots;
+  if (snaps.length === 0) return null;
+  if (t <= snaps[0].t) return snaps[0];
+  if (t >= snaps[snaps.length - 1].t) return snaps[snaps.length - 1];
+
+  let lo = 0;
+  for (let i = 1; i < snaps.length; i++) {
+    if (snaps[i].t > t) { lo = i - 1; break; }
+    lo = i;
+  }
+  const a = snaps[lo];
+  const b = snaps[lo + 1];
+  if (!b) return a;
+
+  const frac = (t - a.t) / (b.t - a.t);
+  const interpolated = { t: t, positions: {} };
+
+  for (const name of Object.keys(a.positions)) {
+    const pa = a.positions[name];
+    const pb = b.positions[name];
+    if (!pb) { interpolated.positions[name] = pa; continue; }
+    interpolated.positions[name] = {
+      x: pa.x + (pb.x - pa.x) * frac,
+      y: pa.y + (pb.y - pa.y) * frac,
+      z: pa.z + (pb.z - pa.z) * frac,
+      alive: frac < 0.5 ? pa.alive : pb.alive,
+      health: Math.round(pa.health + (pb.health - pa.health) * frac),
+      armor: Math.round(pa.armor + (pb.armor - pa.armor) * frac),
+    };
+  }
+  return interpolated;
+}
+
+function getTrailSnapshots(t, seconds) {
+  if (!currentDemo) return [];
+  const result = [];
+  const snaps = currentDemo.snapshots;
+  for (let i = 0; i < snaps.length; i++) {
+    if (snaps[i].t >= t - seconds && snaps[i].t <= t) result.push(snaps[i]);
+  }
+  return result;
+}
+
+function getKillsNear(t, window) {
+  if (!currentDemo) return [];
+  return currentDemo.kills.filter(k => Math.abs(k.t - t) <= window);
+}
+
+function drawFrame() {
+  ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+  if (!currentDemo) return;
+
+  const snap = getSnapshotAt(currentTime);
+  if (!snap) return;
+
+  const showTrail = document.getElementById('showTrail').checked;
+  const trailLen = parseInt(document.getElementById('trailLength').value) || 10;
+  const showNames = document.getElementById('showNames').checked;
+  const showDead = document.getElementById('showDeadPlayers').checked;
+  const showKills = document.getElementById('showKillMarkers').checked;
+
+  // Draw trails
+  if (showTrail) {
+    const trailSnaps = getTrailSnapshots(currentTime, trailLen);
+    for (const player of currentDemo.players) {
+      if (!enabledTeams.has(player.team) || !enabledPlayers.has(player.name)) continue;
+      const color = teamColorMap[player.team];
+      ctx.strokeStyle = color.trail;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      let started = false;
+      for (const ts of trailSnaps) {
+        const pos = ts.positions[player.name];
+        if (!pos || (!showDead && !pos.alive)) continue;
+        if (pos.x === 0 && pos.y === 0 && pos.z === 0) continue;
+        const [cx, cy] = worldToCanvas(pos.x, pos.y);
+        if (!started) { ctx.moveTo(cx, cy); started = true; }
+        else ctx.lineTo(cx, cy);
+      }
+      ctx.stroke();
+    }
+  }
+
+  // Draw kill markers
+  if (showKills) {
+    const recentKills = getKillsNear(currentTime, 2);
+    for (const k of recentKills) {
+      if (k.victim_pos) {
+        const [cx, cy] = worldToCanvas(k.victim_pos[0], k.victim_pos[1]);
+        ctx.strokeStyle = 'rgba(255, 255, 100, 0.7)';
+        ctx.lineWidth = 2;
+        const size = 6;
+        ctx.beginPath(); ctx.moveTo(cx - size, cy - size); ctx.lineTo(cx + size, cy + size); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx + size, cy - size); ctx.lineTo(cx - size, cy + size); ctx.stroke();
+      }
+    }
+  }
+
+  // Draw player dots
+  for (const player of currentDemo.players) {
+    if (!enabledTeams.has(player.team) || !enabledPlayers.has(player.name)) continue;
+    const pos = snap.positions[player.name];
+    if (!pos) continue;
+    if (pos.x === 0 && pos.y === 0 && pos.z === 0) continue;
+    if (!pos.alive && !showDead) continue;
+
+    const color = teamColorMap[player.team];
+    const [cx, cy] = worldToCanvas(pos.x, pos.y);
+
+    const radius = pos.alive ? 5 : 3;
+    ctx.fillStyle = pos.alive ? color.bg : color.dead;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (pos.alive) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    if (showNames) {
+      ctx.fillStyle = pos.alive ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)';
+      ctx.font = '10px Consolas, Menlo, monospace';
+      ctx.fillText(player.name, cx + 8, cy - 4);
+      if (pos.alive) {
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.fillText(`${pos.health}/${pos.armor}`, cx + 8, cy + 7);
+      }
+    }
+  }
+
+  // Update info panel
+  const infoPanel = document.getElementById('infoPanel');
+  const snap_positions = Object.entries(snap.positions).filter(([n, p]) => p.alive && enabledPlayers.has(n));
+  infoPanel.innerHTML = `<b>t=${formatTime(currentTime)}</b> · ${snap_positions.length} alive`;
+
+  // Update kill feed
+  const killFeed = document.getElementById('killFeed');
+  const nearKills = getKillsNear(currentTime, 5);
+  killFeed.innerHTML = nearKills.map(k =>
+    `<div class="kill-entry"><span class="killer">${k.killer}</span> <span class="weapon">[${k.weapon}]</span> <span class="victim">${k.victim}</span></div>`
+  ).join('');
+}
+
+function loadDemo(idx) {
+  currentDemo = data.demos[idx];
+  currentMap = data.maps[currentDemo.map];
+  currentTime = currentDemo.snapshots[0]?.t || 0;
+
+  // Load map-specific top-down image
+  mapImg = null;
+  drawMap();
+  const img = new Image();
+  img.onload = () => { mapImg = img; drawMap(); redraw(); };
+  img.src = 'data/' + currentMap.topdown_image;
+
+  // Pre-fill hub game ID
+  document.getElementById('hubGameId').value = currentDemo.hub_game_id || '';
+
+  const timeline = document.getElementById('timeline');
+  timeline.max = currentDemo.duration;
+  timeline.value = currentTime;
+
+  // Build team color mapping
+  teamColorMap = {};
+  currentDemo.teams.forEach((team, i) => {
+    teamColorMap[team.name] = TEAM_COLORS[i % TEAM_COLORS.length];
+  });
+
+  // Build filters
+  enabledTeams = new Set(currentDemo.teams.map(t => t.name));
+  enabledPlayers = new Set(currentDemo.players.map(p => p.name));
+
+  const filtersDiv = document.getElementById('teamFilters');
+  filtersDiv.innerHTML = '';
+  currentDemo.teams.forEach((team, ti) => {
+    const color = TEAM_COLORS[ti % TEAM_COLORS.length];
+    const group = document.createElement('div');
+    group.className = 'team-group';
+
+    const header = document.createElement('div');
+    header.className = 'team-header';
+    header.innerHTML = `
+      <input type="checkbox" checked data-team="${team.name}" class="team-checkbox">
+      <div class="team-dot" style="background:${color.bg}"></div>
+      <span class="team-name">${team.name}</span>
+    `;
+    group.appendChild(header);
+
+    team.players.forEach(pname => {
+      const row = document.createElement('div');
+      row.className = 'player-row';
+      row.innerHTML = `
+        <input type="checkbox" checked data-player="${pname}" class="player-checkbox">
+        <div class="player-dot" style="background:${color.bg}"></div>
+        <span class="player-name">${pname}</span>
+      `;
+      group.appendChild(row);
+    });
+
+    filtersDiv.appendChild(group);
+  });
+
+  // Wire team checkboxes
+  filtersDiv.querySelectorAll('.team-checkbox').forEach(cb => {
+    cb.addEventListener('change', (e) => {
+      const team = e.target.dataset.team;
+      if (e.target.checked) enabledTeams.add(team); else enabledTeams.delete(team);
+      const teamData = currentDemo.teams.find(t => t.name === team);
+      if (teamData) {
+        teamData.players.forEach(p => {
+          if (e.target.checked) enabledPlayers.add(p); else enabledPlayers.delete(p);
+        });
+        filtersDiv.querySelectorAll(`.player-checkbox`).forEach(pcb => {
+          if (teamData.players.includes(pcb.dataset.player)) pcb.checked = e.target.checked;
+        });
+      }
+      redraw();
+    });
+  });
+
+  // Wire player checkboxes
+  filtersDiv.querySelectorAll('.player-checkbox').forEach(cb => {
+    cb.addEventListener('change', (e) => {
+      const name = e.target.dataset.player;
+      if (e.target.checked) enabledPlayers.add(name); else enabledPlayers.delete(name);
+      redraw();
+    });
+  });
+
+  updateTimeLabel();
+  updateHubLinks();
+
+  if (viewMode === '3d' && three_inited) {
+    loadThreeMap().then(() => updateThreePlayers());
+  }
+  redraw();
+}
+
+function updateHubLinks() {
+  const gameId = document.getElementById('hubGameId').value.trim();
+  const linksDiv = document.getElementById('hubLinks');
+  if (!gameId || !currentDemo) {
+    linksDiv.innerHTML = '<span style="color:#555">Enter a hub Game ID above</span>';
+    return;
+  }
+  const baseUrl = 'https://hub.quakeworld.nu/games/';
+
+  const currentSec = Math.floor(currentTime);
+  const marks = [
+    { label: `▶ Current (${formatTime(currentSec)})`, t: Math.max(0, currentSec - 6), highlight: true },
+    { label: '05:00', t: 294 },
+    { label: '10:00', t: 594 },
+    { label: '15:00', t: 894 },
+  ].filter(m => m.t <= (currentDemo.duration || 9999));
+
+  linksDiv.innerHTML = marks.map(m => {
+    const url = `${baseUrl}?gameId=${gameId}&from=${m.t}`;
+    const style = m.highlight
+      ? 'color:#ff6;text-decoration:none;font-weight:bold;'
+      : 'color:#6af;text-decoration:none;';
+    return `<div style="margin:3px 0">
+      <a href="${url}" target="_blank" style="${style}">${m.label}</a>
+    </div>`;
+  }).join('');
+}
+
+function updateTimeLabel() {
+  document.getElementById('timeLabel').textContent =
+    `${formatTime(currentTime)} / ${formatTime(currentDemo?.duration || 0)}`;
+  updateHubLinks();
+}
+
+function redraw() {
+  if (viewMode === '2d') drawFrame();
+  else { updateThreePlayers(); renderThree(); }
+}
+
+function animate(ts) {
+  if (playing && currentDemo) {
+    if (lastFrameTime > 0) {
+      const dt = (ts - lastFrameTime) / 1000 * playSpeed;
+      currentTime = Math.min(currentTime + dt, currentDemo.duration);
+      document.getElementById('timeline').value = currentTime;
+      updateTimeLabel();
+      redraw();
+      if (currentTime >= currentDemo.duration) { playing = false; document.getElementById('playBtn').textContent = '▶'; }
+    }
+    lastFrameTime = ts;
+  } else if (viewMode === '3d') {
+    renderThree();
+  }
+  requestAnimationFrame(animate);
+}
+
+async function init() {
+  // Load data
+  const resp = await fetch('data/dashboard_data.json');
+  data = await resp.json();
+
+  // Populate demo select
+  const sel = document.getElementById('demoSelect');
+  data.demos.forEach((d, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `${d.map.toUpperCase()} — ${d.filename.replace('.mvd.gz', '')}`;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', () => loadDemo(parseInt(sel.value)));
+
+  // Timeline
+  const timeline = document.getElementById('timeline');
+  timeline.addEventListener('input', () => {
+    currentTime = parseFloat(timeline.value);
+    updateTimeLabel();
+    redraw();
+  });
+
+  // Play/pause
+  document.getElementById('playBtn').addEventListener('click', () => {
+    playing = !playing;
+    document.getElementById('playBtn').textContent = playing ? '⏸' : '▶';
+    lastFrameTime = 0;
+  });
+
+  // Speed
+  const speeds = [1, 2, 4, 8];
+  let speedIdx = 0;
+  document.getElementById('speedBtn').addEventListener('click', () => {
+    speedIdx = (speedIdx + 1) % speeds.length;
+    playSpeed = speeds[speedIdx];
+    document.getElementById('speedLabel').textContent = `${playSpeed}x`;
+    document.getElementById('speedBtn').textContent = `${speeds[(speedIdx + 1) % speeds.length]}x`;
+  });
+
+  // Display toggles
+  ['showTrail', 'showNames', 'showDeadPlayers', 'showKillMarkers'].forEach(id => {
+    document.getElementById(id).addEventListener('change', redraw);
+  });
+  document.getElementById('trailLength').addEventListener('input', redraw);
+
+  // Hub links
+  document.getElementById('hubGameId').addEventListener('input', updateHubLinks);
+
+  // Resize
+  window.addEventListener('resize', resizeCanvases);
+  resizeCanvases();
+
+  // Load first demo
+  if (data.demos.length > 0) loadDemo(0);
+
+  // Start animation loop
+  requestAnimationFrame(animate);
+}
+
+// --- 3D View ---
+
+let viewMode = '2d';
+let threeScene, threeCamera, threeRenderer, threeControls;
+let bspMeshGroup = null;
+let playerSpheres = {};
+let three_inited = false;
+let three_loaded_map = null;
+
+const TEAM_COLORS_3D = [
+  0xe63c3c,
+  0x3c82e6,
+  0x3cc850,
+  0xe6b428,
+];
+
+async function initThree() {
+  if (three_inited) return;
+  const container = document.getElementById('threeContainer');
+
+  threeScene = new THREE.Scene();
+  threeScene.background = new THREE.Color(0x111111);
+
+  threeCamera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 1, 20000);
+  threeCamera.position.set(500, 500, 1500);
+  threeCamera.up.set(0, 0, 1);
+
+  threeRenderer = new THREE.WebGLRenderer({ antialias: true });
+  threeRenderer.setSize(container.clientWidth, container.clientHeight);
+  threeRenderer.setPixelRatio(window.devicePixelRatio);
+  container.appendChild(threeRenderer.domElement);
+
+  threeControls = new OrbitControls(threeCamera, threeRenderer.domElement);
+  threeControls.target.set(500, 100, 0);
+  threeControls.enableDamping = true;
+  threeControls.dampingFactor = 0.1;
+  threeControls.update();
+
+  const ambientLight = new THREE.AmbientLight(0x404040, 2);
+  threeScene.add(ambientLight);
+
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  dirLight.position.set(1000, 1000, 2000);
+  threeScene.add(dirLight);
+
+  const dirLight2 = new THREE.DirectionalLight(0x6688cc, 0.8);
+  dirLight2.position.set(-1000, -500, 500);
+  threeScene.add(dirLight2);
+
+  three_inited = true;
+  await loadThreeMap();
+}
+
+async function loadThreeMap() {
+  if (!threeScene || !currentDemo) return;
+  const mapName = currentDemo.map;
+  if (mapName === three_loaded_map) return;
+
+  // Remove old BSP geometry
+  if (bspMeshGroup) {
+    threeScene.remove(bspMeshGroup);
+    bspMeshGroup.traverse(child => {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) child.material.dispose();
+    });
+  }
+
+  const [vertBuf, triBuf] = await Promise.all([
+    fetch(`data/${mapName}/vertexes.bin`).then(r => r.arrayBuffer()),
+    fetch(`data/${mapName}/triangles.bin`).then(r => r.arrayBuffer()),
+  ]);
+
+  const verts = new Float32Array(vertBuf);
+  const tris = new Int32Array(triBuf);
+  const indices = new Uint32Array(tris.length);
+  for (let i = 0; i < tris.length; i++) indices[i] = tris[i];
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+  geo.setIndex(new THREE.BufferAttribute(indices, 1));
+  geo.computeVertexNormals();
+
+  bspMeshGroup = new THREE.Group();
+
+  const mat = new THREE.MeshPhongMaterial({
+    color: 0x556666,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.6,
+  });
+  bspMeshGroup.add(new THREE.Mesh(geo, mat));
+
+  const wireMat = new THREE.MeshBasicMaterial({
+    color: 0x334444,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.15,
+  });
+  bspMeshGroup.add(new THREE.Mesh(geo, wireMat));
+
+  threeScene.add(bspMeshGroup);
+
+  // Center camera on the new map
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3();
+  geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3();
+  geo.boundingBox.getSize(size);
+  threeControls.target.copy(center);
+  threeCamera.position.set(center.x, center.y - size.y * 0.5, center.z + size.z * 1.5);
+  threeControls.update();
+
+  three_loaded_map = mapName;
+}
+
+function updateThreePlayers() {
+  if (!threeScene || !currentDemo) return;
+
+  const snap = getSnapshotAt(currentTime);
+  if (!snap) return;
+
+  const showDead = document.getElementById('showDeadPlayers').checked;
+
+  // Remove old spheres
+  for (const name of Object.keys(playerSpheres)) {
+    threeScene.remove(playerSpheres[name].mesh);
+    if (playerSpheres[name].label) threeScene.remove(playerSpheres[name].label);
+  }
+  playerSpheres = {};
+
+  for (const player of currentDemo.players) {
+    if (!enabledTeams.has(player.team) || !enabledPlayers.has(player.name)) continue;
+    const pos = snap.positions[player.name];
+    if (!pos) continue;
+    if (pos.x === 0 && pos.y === 0 && pos.z === 0) continue;
+    if (!pos.alive && !showDead) continue;
+
+    const teamIdx = currentDemo.teams.findIndex(t => t.name === player.team);
+    const color = TEAM_COLORS_3D[teamIdx % TEAM_COLORS_3D.length];
+
+    const radius = pos.alive ? 16 : 10;
+    const sphereGeo = new THREE.SphereGeometry(radius, 12, 8);
+    const sphereMat = new THREE.MeshPhongMaterial({
+      color: color,
+      emissive: color,
+      emissiveIntensity: pos.alive ? 0.4 : 0.1,
+      transparent: !pos.alive,
+      opacity: pos.alive ? 1.0 : 0.4,
+    });
+    const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+    sphere.position.set(pos.x, pos.y, pos.z + 24);
+    threeScene.add(sphere);
+
+    // Player name sprite
+    const canvas2 = document.createElement('canvas');
+    canvas2.width = 256; canvas2.height = 64;
+    const c2 = canvas2.getContext('2d');
+    c2.font = 'bold 28px Consolas, monospace';
+    c2.fillStyle = pos.alive ? '#ffffff' : '#666666';
+    c2.fillText(player.name, 4, 30);
+    c2.font = '20px Consolas, monospace';
+    c2.fillStyle = '#aaaaaa';
+    c2.fillText(`${pos.health}/${pos.armor}`, 4, 54);
+
+    const tex = new THREE.CanvasTexture(canvas2);
+    const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+    const sprite = new THREE.Sprite(spriteMat);
+    sprite.position.set(pos.x + 20, pos.y, pos.z + 56);
+    sprite.scale.set(120, 30, 1);
+    threeScene.add(sprite);
+
+    playerSpheres[player.name] = { mesh: sphere, label: sprite };
+  }
+
+  // Draw kill markers
+  const showKills = document.getElementById('showKillMarkers').checked;
+  if (showKills) {
+    const recentKills = getKillsNear(currentTime, 2);
+    for (const k of recentKills) {
+      if (k.victim_pos) {
+        const crossGeo = new THREE.SphereGeometry(12, 6, 4);
+        const crossMat = new THREE.MeshBasicMaterial({ color: 0xffff44 });
+        const cross = new THREE.Mesh(crossGeo, crossMat);
+        cross.position.set(k.victim_pos[0], k.victim_pos[1], (k.victim_pos[2] || 0) + 24);
+        cross.userData.killMarker = true;
+        threeScene.add(cross);
+        playerSpheres['_kill_' + k.t + k.victim] = { mesh: cross, label: null };
+      }
+    }
+  }
+}
+
+function renderThree() {
+  if (viewMode !== '3d' || !threeRenderer) return;
+  threeControls.update();
+  threeRenderer.render(threeScene, threeCamera);
+}
+
+function toggleView() {
+  const btn = document.getElementById('viewToggle');
+  const mapC = document.getElementById('mapCanvas');
+  const overC = document.getElementById('overlayCanvas');
+  const threeC = document.getElementById('threeContainer');
+
+  if (viewMode === '2d') {
+    viewMode = '3d';
+    btn.textContent = 'Switch to 2D';
+    mapC.style.display = 'none';
+    overC.style.display = 'none';
+    threeC.style.display = 'block';
+    initThree().then(() => loadThreeMap()).then(() => {
+      const container = document.getElementById('threeContainer');
+      threeCamera.aspect = container.clientWidth / container.clientHeight;
+      threeCamera.updateProjectionMatrix();
+      threeRenderer.setSize(container.clientWidth, container.clientHeight);
+      updateThreePlayers();
+    });
+  } else {
+    viewMode = '2d';
+    btn.textContent = 'Switch to 3D';
+    mapC.style.display = 'block';
+    overC.style.display = 'block';
+    threeC.style.display = 'none';
+    drawMap();
+    drawFrame();
+  }
+}
+
+document.getElementById('viewToggle').addEventListener('click', toggleView);
+
+// Resize handler for 3D
+window.addEventListener('resize', () => {
+  if (viewMode === '3d' && threeRenderer) {
+    const container = document.getElementById('threeContainer');
+    threeCamera.aspect = container.clientWidth / container.clientHeight;
+    threeCamera.updateProjectionMatrix();
+    threeRenderer.setSize(container.clientWidth, container.clientHeight);
+  }
+});
+
+init();
+</script>
+</body>
+</html>

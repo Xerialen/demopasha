@@ -1,0 +1,177 @@
+{
+  "file": "e1m2_189809.mvd.gz",
+  "map": "e1m2",
+  "hub_game_id": 189809,
+  "parser": "mimer",
+  "parser_version": "Phase 4B (2026-04-11)",
+  "byte_accounting": {
+    "file_size_bytes": 9266725,
+    "bytes_parsed": null,
+    "bytes_unknown": null,
+    "coverage_pct": null,
+    "status": "NOT_TRACKED"
+  },
+  "message_coverage": {
+    "svc_types_defined": 40,
+    "svc_types_parsed": null,
+    "svc_types_skipped": null,
+    "status": "NOT_TRACKED"
+  },
+  "hidden_message_coverage": {
+    "types_defined": 12,
+    "types_parsed": 6,
+    "types_skipped": 6,
+    "parsed_list": [
+      0,
+      1,
+      2,
+      3,
+      7,
+      8
+    ],
+    "skipped_list": [
+      4,
+      5,
+      6,
+      9,
+      10,
+      11
+    ],
+    "coverage_pct": 50.0,
+    "status": "PARTIAL"
+  },
+  "entity_tracking": {
+    "entities_tracked": 378,
+    "models_tracked": 11,
+    "failure_rate_pct": 3.5,
+    "failure_count": null,
+    "status": "PARTIAL"
+  },
+  "position_timeline": {
+    "sample_rate_hz": 0.5,
+    "total_snapshots": 597,
+    "total_positions": 4776,
+    "zero_origin_positions": 0,
+    "zero_origin_pct": 0.0,
+    "duration_secs": 1215.9,
+    "theoretical_max_hz": "77 (server tickrate)",
+    "status": "DOWNSAMPLED"
+  },
+  "stat_tracking": {
+    "indices_tracked": 4,
+    "indices_total": 32,
+    "coverage_pct": 12.5,
+    "tracked_list": [
+      "STAT_ITEMS",
+      "STAT_HEALTH",
+      "STAT_ARMOR",
+      "STAT_ACTIVEWEAPON"
+    ],
+    "stat_transitions": 29203,
+    "status": "PARTIAL"
+  },
+  "ktxstats": {
+    "players_with_stats": 8,
+    "fields_extracted": [
+      "damage_given",
+      "damage_taken",
+      "damage_team",
+      "deaths",
+      "ewep",
+      "ewep_pct",
+      "frags",
+      "lg_accuracy",
+      "rl_accuracy",
+      "spawn_frags",
+      "speed_avg",
+      "suicides",
+      "teamkills",
+      "xfer_lg",
+      "xfer_rl"
+    ],
+    "fields_count": 15,
+    "fields_possible": 20,
+    "coverage_pct": 75.0,
+    "cross_check_frags": null,
+    "cross_check_deaths": null,
+    "status": "PARTIAL"
+  },
+  "bsp_coverage": {
+    "lumps_total": 15,
+    "lumps_parsed": 1,
+    "lumps_parsed_list": [
+      "entities (partial: 17 classnames)"
+    ],
+    "coverage_pct": 6.7,
+    "classnames_extracted": 17,
+    "spatial_queries": "500-unit proximity heuristic, 1Hz, no wall awareness",
+    "status": "MINIMAL"
+  },
+  "loc_coverage": {
+    "loc_file_exists": false,
+    "loc_lines": null,
+    "malformed_handling": "silent_skip",
+    "bsp_cross_check": false,
+    "status": "MISSING"
+  },
+  "player_data": {
+    "player_count": 8,
+    "fields_per_player": [
+      "death_analysis",
+      "deaths",
+      "exchange_ratings",
+      "frags",
+      "kill_quality",
+      "name",
+      "quad_runs",
+      "rearm",
+      "spatial",
+      "suicides",
+      "team"
+    ],
+    "fields_count": 11
+  },
+  "kill_data": {
+    "kill_count": 543,
+    "fields_per_kill": [
+      "killer",
+      "killer_armor",
+      "killer_has_quad",
+      "killer_health",
+      "killer_pos",
+      "killer_team",
+      "killer_team_rls",
+      "killer_zone",
+      "movement_at_death",
+      "suicide",
+      "time",
+      "victim",
+      "victim_armor",
+      "victim_dropped_lg",
+      "victim_dropped_rl",
+      "victim_has_quad",
+      "victim_health",
+      "victim_is_naked",
+      "victim_pos",
+      "victim_team",
+      "victim_team_rls",
+      "victim_was_last_rl",
+      "victim_was_last_weapon",
+      "victim_weapon_protected",
+      "victim_zone",
+      "weapon"
+    ],
+    "fields_count": 26,
+    "unknown_weapon_count": 0,
+    "unknown_weapon_pct": 0.0
+  },
+  "cross_validation": {
+    "independent_parsers": 1,
+    "ktxstats_cross_check": "partial (frags, deaths only)",
+    "roundtrip_test": false,
+    "visual_validation": false,
+    "gpu_spatial_validation": false,
+    "status": "MINIMAL"
+  },
+  "aggregate_score": 36.0
+}

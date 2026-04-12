@@ -1,0 +1,39 @@
+{
+  "parser": "mimer",
+  "version": "Phase 4B (2026-04-11)",
+  "demos": 5,
+  "maps": [
+    "dm3",
+    "dm2",
+    "schloss",
+    "e1m2",
+    "phantombase"
+  ],
+  "aggregate_score": 36.0,
+  "byte_accounting": "NOT_TRACKED",
+  "message_coverage": "NOT_TRACKED",
+  "hidden_msg_coverage_pct": 50.0,
+  "entity_failure_rate_pct": 3.5,
+  "position_sample_rate_hz": 0.5,
+  "stat_indices_coverage_pct": 12.5,
+  "ktxstats_coverage_pct": 75.0,
+  "bsp_lump_coverage_pct": 6.7,
+  "loc_files_present": 1,
+  "loc_files_missing": 4,
+  "total_kills": 2305,
+  "unknown_weapons": 0,
+  "unknown_weapon_pct": 0.0,
+  "total_positions": 28622,
+  "zero_origin_pct": 15.1,
+  "cross_validation_parsers": 1,
+  "demopasha_target": {
+    "byte_accounting": "100%",
+    "hidden_msg_coverage_pct": 100.0,
+    "entity_failure_rate_pct": 0.0,
+    "position_sample_rate_hz": 77,
+    "stat_indices_coverage_pct": 100.0,
+    "bsp_lump_coverage_pct": 100.0,
+    "unknown_weapon_pct": 0.0,
+    "cross_validation_parsers": 2
+  }
+}
