@@ -94,6 +94,75 @@ input[type="range"] { flex: 1; accent-color: #e44; }
 .dq-legend { display: flex; gap: 20px; margin: 8px 0 16px; font-size: 11px; }
 .dq-legend-item { display: flex; align-items: center; gap: 5px; color: #888; }
 .dq-legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+/* --- Parser Landscape tab --- */
+.pl-page { flex: 1; overflow-y: auto; padding: 24px 32px; background: #111; }
+.pl-page h1 { font-size: 20px; color: #e8e8e8; margin-bottom: 4px; }
+.pl-page h2 { font-size: 15px; color: #ccc; margin: 24px 0 8px; text-transform: none; letter-spacing: 0; }
+.pl-page h3 { font-size: 13px; color: #aaa; margin: 16px 0 6px; text-transform: none; letter-spacing: 0; }
+.pl-page p, .pl-page li { font-size: 13px; color: #888; line-height: 1.6; max-width: 900px; }
+.pl-page ul { margin: 4px 0 12px 20px; }
+.pl-intro { font-size: 13px; color: #888; line-height: 1.5; max-width: 900px; margin-bottom: 20px; }
+.pl-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.pl-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 6px; padding: 16px; }
+.pl-card h3 { font-size: 14px; color: #e8e8e8; margin: 0 0 2px; }
+.pl-card .pl-meta { font-size: 11px; color: #666; margin-bottom: 8px; }
+.pl-card .pl-desc { font-size: 12px; color: #888; line-height: 1.5; margin-bottom: 10px; }
+.pl-card .pl-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.pl-tag { font-size: 10px; padding: 2px 6px; border-radius: 3px; }
+.pl-tag.yes { background: rgba(76, 200, 120, 0.15); color: #4c8; border: 1px solid rgba(76, 200, 120, 0.3); }
+.pl-tag.no { background: rgba(228, 68, 68, 0.1); color: #844; border: 1px solid rgba(228, 68, 68, 0.2); }
+.pl-tag.partial { background: rgba(218, 170, 68, 0.12); color: #da4; border: 1px solid rgba(218, 170, 68, 0.25); }
+
+.pl-matrix { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 12px; }
+.pl-matrix th { text-align: left; padding: 8px 10px; border-bottom: 2px solid #333; color: #aaa; font-weight: 600; position: sticky; top: 0; background: #111; }
+.pl-matrix td { padding: 6px 10px; border-bottom: 1px solid #222; color: #888; }
+.pl-matrix tr:hover td { background: rgba(255,255,255,0.02); }
+.pl-matrix td:first-child { color: #ccc; font-weight: 500; }
+.pl-matrix .cell-yes { color: #4c8; }
+.pl-matrix .cell-no { color: #555; }
+.pl-matrix .cell-partial { color: #da4; }
+.pl-matrix .cell-best { color: #4c8; font-weight: bold; }
+
+.pl-takeaway { background: #1a1a1a; border-left: 3px solid #e44; padding: 16px 20px; margin: 24px 0; border-radius: 0 6px 6px 0; }
+.pl-takeaway h2 { margin: 0 0 8px; color: #e8e8e8; }
+.pl-takeaway p { font-size: 13px; color: #aaa; line-height: 1.6; }
+
+/* --- Validator tab --- */
+.val-wrap { display: flex; flex-direction: column; height: calc(100vh - 37px); }
+.val-toolbar { display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: #1a1a1a; border-bottom: 1px solid #333; flex-shrink: 0; }
+.val-toolbar label { font-size: 11px; color: #888; }
+.val-toolbar select, .val-toolbar input[type="text"] { background: #222; color: #ccc; border: 1px solid #444; padding: 4px 6px; font-family: inherit; font-size: 12px; }
+.val-toolbar select { max-width: 220px; }
+.val-toolbar .val-load-btn { background: #e44; color: #fff; border: none; padding: 4px 14px; font-family: inherit; font-size: 12px; cursor: pointer; border-radius: 3px; }
+.val-toolbar .val-load-btn:hover { background: #f55; }
+.val-toolbar .val-load-btn:disabled { background: #555; cursor: not-allowed; }
+.val-pov-select { min-width: 130px; }
+.val-status { font-size: 11px; color: #666; margin-left: auto; }
+
+.val-split { display: flex; flex: 1; min-height: 0; }
+.val-pane-fte { flex: 1; background: #000; position: relative; border-right: 1px solid #333; }
+.val-pane-fte iframe { width: 100%; height: 100%; border: none; }
+.val-pane-fte .val-no-demo { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #555; font-size: 14px; text-align: center; padding: 20px; line-height: 1.6; }
+.val-pane-map { flex: 1; position: relative; background: #000; }
+.val-pane-map canvas { position: absolute; top: 0; left: 0; }
+
+.val-timeline { padding: 8px 16px 10px; background: #1a1a1a; border-top: 1px solid #333; flex-shrink: 0; }
+.val-timeline .timeline-row { display: flex; align-items: center; gap: 12px; }
+.val-timeline .kill-feed { margin-top: 6px; max-height: 50px; overflow-y: auto; font-size: 11px; color: #888; }
+
+.val-pov-active { font-weight: bold; color: #ff6 !important; }
+.val-player-ring { stroke-width: 3; stroke: #ff6; fill: none; }
+
+/* Validator browse mode */
+#valBrowseMode { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+#valDemoTable tbody tr { cursor: pointer; }
+#valDemoTable tbody tr:hover { background: rgba(228, 68, 68, 0.08); }
+#valDemoTable tbody td { padding: 6px 12px; border-bottom: 1px solid #1a1a1a; color: #aaa; }
+#valDemoTable tbody .map-cell { color: #e8e8e8; font-weight: 500; }
+.val-source-tab.active { color: #e8e8e8 !important; border-bottom-color: #e44 !important; }
+.val-source-tab:hover { color: #aaa !important; }
+#valParsingMode { background: #111; }
 </style>
 </head>
 <body>
@@ -101,6 +170,8 @@ input[type="range"] { flex: 1; accent-color: #e44; }
 <div class="tab-bar">
   <button class="tab-btn active" data-tab="replay">Replay</button>
   <button class="tab-btn" data-tab="quality">Data Quality</button>
+  <button class="tab-btn" data-tab="landscape">Parser Landscape</button>
+  <button class="tab-btn" data-tab="validator">Validator</button>
 </div>
 
 <div class="tab-content active" data-tab="replay">
@@ -139,13 +210,6 @@ input[type="range"] { flex: 1; accent-color: #e44; }
       <label for="showKillMarkers">Kill markers</label>
     </div>
 
-    <h2>Hub links</h2>
-    <div class="trail-control">
-      <label for="hubGameId" style="font-size:11px;color:#888;">Game ID:</label>
-      <input type="text" id="hubGameId" value="202415" style="width:80px;background:#222;color:#ccc;border:1px solid #444;padding:2px 4px;font-size:11px;">
-    </div>
-    <div id="hubLinks" style="margin-top:4px;font-size:11px;"></div>
-
     <div class="info-panel" id="infoPanel"></div>
   </div>
 
@@ -172,41 +236,578 @@ input[type="range"] { flex: 1; accent-color: #e44; }
 <div class="tab-content" data-tab="quality">
 <div class="dq-page">
   <div class="dq-header">
-    <h1>Data Quality Scorecard</h1>
-    <p>Quantitative comparison of what mimer (pre-north-star) extracts vs what demopasha targets. Every number is measured from the actual demo bytes across 5 hub demos (dm2, dm3, schloss, e1m2, phantombase). The goal: move every bar from red to green.</p>
+    <h1>Data Quality Gates</h1>
+    <p>Parse a demo in the Validator tab to update live metrics. Lock a gate when you're satisfied — it becomes the regression floor. If a future parse drops below a locked value, the gate turns red.</p>
   </div>
 
   <div class="dq-score-big">
-    <div class="number" style="color: #e44;">38%</div>
-    <div class="label">mimer baseline (pre-north-star)</div>
-    <div style="margin-left: 24px; font-size: 14px; color: #555;">→</div>
-    <div class="number" id="dqCurrentScore" style="color: #48f;">38%</div>
-    <div class="label">demopasha (current)</div>
-    <div style="margin-left: 24px; font-size: 14px; color: #555;">→</div>
-    <div class="number" style="color: #4c8;">100%</div>
-    <div class="label">target</div>
+    <div class="number" id="dqGatesPassed" style="color: #4c8;">0</div>
+    <div class="label">gates passed</div>
+    <div style="margin-left: 16px; font-size: 14px; color: #555;">/</div>
+    <div class="number" id="dqGatesTotal" style="color: #888;">0</div>
+    <div class="label">total gates</div>
+    <div style="margin-left: 32px;" id="dqLastParse"></div>
   </div>
 
   <div class="dq-legend">
-    <div class="dq-legend-item"><div class="dq-legend-dot" style="background:#e44;"></div> Mimer baseline</div>
-    <div class="dq-legend-item"><div class="dq-legend-dot" style="background:#48f;"></div> demopasha (current)</div>
-    <div class="dq-legend-item"><div class="dq-legend-dot" style="background:#4c8;"></div> Target (100%)</div>
+    <div class="dq-legend-item"><div class="dq-legend-dot" style="background:#4c8;"></div> Gate passed</div>
+    <div class="dq-legend-item"><div class="dq-legend-dot" style="background:#da4;"></div> Needs data / in progress</div>
+    <div class="dq-legend-item"><div class="dq-legend-dot" style="background:#e44;"></div> Not started / regression</div>
   </div>
 
   <div class="dq-grid" id="dqGrid"></div>
+
+  <div style="margin-top:20px;padding:14px;background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid #222;font-size:11px;color:#666;line-height:1.6;">
+    <strong style="color:#888;">How this works:</strong>
+    Parse a demo in the Validator → metrics auto-populate here.
+    Click <strong>Lock Gate</strong> when satisfied — that value becomes the floor.
+    If a future parse drops below a locked value → <span style="color:#e44;">REGRESSION</span> badge appears.
+    All data stored in browser localStorage.
+  </div>
 </div>
 </div><!-- end quality tab -->
+
+<div class="tab-content" data-tab="landscape">
+<div class="pl-page">
+  <h1>Parser Landscape</h1>
+  <p class="pl-intro">Every known QW MVD parser compared against MIMER (pre-north-star) and the demopasha target. Researched 2026-04-12 from the six public GitHub repos. Bottom line: <strong>none of them touch 3D geometry</strong> — the north-star BSP+loc+demo fusion is uncharted territory for QW tooling.</p>
+
+  <div class="pl-cards">
+    <div class="pl-card">
+      <h3>QW-Group/mvdparser</h3>
+      <div class="pl-meta">C &middot; 11 stars &middot; actively maintained (Feb 2025) &middot; 10 contributors</div>
+      <div class="pl-desc">The community standard, maintained alongside MVDSV and ezQuake. Template-driven output to log files + JSON. Extracts per-player end-of-match aggregates: frags, deaths, armor/weapon/powerup pickup counts, per-weapon shots, ping/speed. Uses fragfile.dat for kill attribution.</div>
+      <div class="pl-tags">
+        <span class="pl-tag yes">fragfile kills</span>
+        <span class="pl-tag yes">player stats</span>
+        <span class="pl-tag yes">item pickup counts</span>
+        <span class="pl-tag no">no hidden messages</span>
+        <span class="pl-tag no">no KTXstats</span>
+        <span class="pl-tag no">no BSP</span>
+        <span class="pl-tag no">no loc</span>
+        <span class="pl-tag no">no entity tracking</span>
+        <span class="pl-tag no">no analysis</span>
+      </div>
+    </div>
+
+    <div class="pl-card">
+      <h3>JoakimSoderberg/mvdparser</h3>
+      <div class="pl-meta">C &middot; 2 stars &middot; abandoned (2012) &middot; ancestor of QW-Group fork</div>
+      <div class="pl-desc">The lineage of the QW-Group version, from 2007-2009. Similar stats extraction plus ghost player detection, CTF flag events, and match state machine (countdown/started/overtime). Template-only output. No activity in 13+ years.</div>
+      <div class="pl-tags">
+        <span class="pl-tag yes">fragfile kills</span>
+        <span class="pl-tag yes">player stats</span>
+        <span class="pl-tag yes">CTF flags</span>
+        <span class="pl-tag yes">ghost players</span>
+        <span class="pl-tag no">no hidden messages</span>
+        <span class="pl-tag no">no BSP</span>
+        <span class="pl-tag no">no loc</span>
+        <span class="pl-tag no">no analysis</span>
+      </div>
+    </div>
+
+    <div class="pl-card">
+      <h3>vikpe/mvdparser</h3>
+      <div class="pl-meta">Rust &middot; crates.io (37k downloads) &middot; actively maintained (Feb 2026)</div>
+      <div class="pl-desc">Clean metadata extraction library. Reads KTXstats v3, player/team info, frags-by-name, serverinfo, prints, match duration. Does not reconstruct game state &mdash; svc_playerinfo, packetentities, updatestat are defined in the enum but never consumed. No positions, no entities.</div>
+      <div class="pl-tags">
+        <span class="pl-tag yes">KTXstats v3</span>
+        <span class="pl-tag yes">serverinfo</span>
+        <span class="pl-tag yes">fragfile kills</span>
+        <span class="pl-tag yes">CTF flags</span>
+        <span class="pl-tag no">no entity tracking</span>
+        <span class="pl-tag no">no positions</span>
+        <span class="pl-tag no">no stat transitions</span>
+        <span class="pl-tag no">no BSP</span>
+        <span class="pl-tag no">no analysis</span>
+      </div>
+    </div>
+
+    <div class="pl-card">
+      <h3>vikpe/mvdparser-js</h3>
+      <div class="pl-meta">TypeScript &middot; 53 lines &middot; one-day project (Jun 2024)</div>
+      <div class="pl-desc">Three regex passes over the raw byte stream to extract serverinfo (first 1KB), KTXstats JSON (last 48KB), and match duration. Not a protocol parser &mdash; just string scanning. Browser-oriented (WebCrypto for SHA-256).</div>
+      <div class="pl-tags">
+        <span class="pl-tag yes">KTXstats (regex)</span>
+        <span class="pl-tag yes">serverinfo</span>
+        <span class="pl-tag no">no protocol parsing</span>
+        <span class="pl-tag no">no BSP</span>
+        <span class="pl-tag no">no analysis</span>
+      </div>
+    </div>
+
+    <div class="pl-card">
+      <h3>miltonizer/quakeworld_records</h3>
+      <div class="pl-meta">Python &middot; 1 star &middot; abandoned (Dec 2020) &middot; single-day prototype</div>
+      <div class="pl-desc">Correctly implements MVD framing and a subset of svc_* parsing. Tracks positions, weapon drops via STAT_ACTIVEWEAPON, item pickups via bitmask transitions, sound events. But: frag parsing is a TODO stub, entity state is parsed then discarded, no output of any kind. Good protocol documentation in the README.</div>
+      <div class="pl-tags">
+        <span class="pl-tag yes">positions</span>
+        <span class="pl-tag yes">stat transitions</span>
+        <span class="pl-tag partial">entity parse (discarded)</span>
+        <span class="pl-tag partial">frag parsing (TODO)</span>
+        <span class="pl-tag no">no KTXstats</span>
+        <span class="pl-tag no">no output</span>
+        <span class="pl-tag no">no BSP</span>
+        <span class="pl-tag no">no analysis</span>
+      </div>
+    </div>
+
+    <div class="pl-card">
+      <h3>vikpe/example-mvdparser-rust</h3>
+      <div class="pl-meta">Rust &middot; 53 lines &middot; usage example for vikpe/mvdparser crate</div>
+      <div class="pl-desc">Minimal example app demonstrating the mvdparser crate. Extracts KTXstats v3 JSON and builds a player-name-to-login mapping. Nothing beyond what the library exposes.</div>
+      <div class="pl-tags">
+        <span class="pl-tag yes">KTXstats v3</span>
+        <span class="pl-tag yes">login mapping</span>
+        <span class="pl-tag no">example only</span>
+      </div>
+    </div>
+
+    <div class="pl-card">
+      <h3>vikpe/demolyzer</h3>
+      <div class="pl-meta">C# / WPF &middot; 0 stars &middot; code dump (Jul 2025) &middot; author: Cory Vogel (vogelca)</div>
+      <div class="pl-desc">Windows desktop GUI with real-time 2D map playback (pre-rendered BMP map images for ~15 maps). Custom MVD parser tracking positions, full stat transitions, entity respawn timers, and notably detailed backpack economy: RL/LG from enemy vs team packs, donated vs lost. Computes "Power" timeline (health+armor*weapon*powerup per second), TP_Rating composite, and weapon matchup win rates. No export, no CLI &mdash; GUI-only with seek/pause/rate controls and time-series charts.</div>
+      <div class="pl-tags">
+        <span class="pl-tag yes">positions</span>
+        <span class="pl-tag yes">stat transitions</span>
+        <span class="pl-tag yes">entity respawn timers</span>
+        <span class="pl-tag yes">backpack economy</span>
+        <span class="pl-tag yes">2D map playback</span>
+        <span class="pl-tag yes">power timeline</span>
+        <span class="pl-tag partial">BSP (pre-rendered images only)</span>
+        <span class="pl-tag no">no KTXstats</span>
+        <span class="pl-tag no">no hidden messages</span>
+        <span class="pl-tag no">no loc files</span>
+        <span class="pl-tag no">no export / no CLI</span>
+        <span class="pl-tag no">Windows only</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Capability Matrix</h2>
+
+  <table class="pl-matrix">
+    <thead>
+      <tr>
+        <th>Capability</th>
+        <th>QW-Group</th>
+        <th>Joakim</th>
+        <th>vikpe/rust</th>
+        <th>vikpe/js</th>
+        <th>miltonizer</th>
+        <th>demolyzer</th>
+        <th>MIMER (pre-NS)</th>
+        <th>demopasha target</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>MVD frame parsing</td>
+        <td class="cell-yes">Yes</td>
+        <td class="cell-yes">Yes</td>
+        <td class="cell-partial">Partial</td>
+        <td class="cell-no">No</td>
+        <td class="cell-yes">Yes</td>
+        <td class="cell-yes">Yes</td>
+        <td class="cell-best">Full</td>
+        <td class="cell-best">Full</td>
+      </tr>
+      <tr>
+        <td>svc_* message types</td>
+        <td class="cell-partial">~20</td>
+        <td class="cell-partial">~15</td>
+        <td class="cell-partial">~10</td>
+        <td class="cell-no">0</td>
+        <td class="cell-partial">~15</td>
+        <td class="cell-partial">~15</td>
+        <td class="cell-best">40+ core, 20+ FTE</td>
+        <td class="cell-best">100%</td>
+      </tr>
+      <tr>
+        <td>Hidden messages</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-partial">KTXstats only</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-best">6 types</td>
+        <td class="cell-best">All types</td>
+      </tr>
+      <tr>
+        <td>Entity tracking</td>
+        <td class="cell-partial">Parse only</td>
+        <td class="cell-partial">Parse only</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-partial">Parse &amp; discard</td>
+        <td class="cell-yes">Respawn timers</td>
+        <td class="cell-best">Full (spawn/despawn/backpack)</td>
+        <td class="cell-best">100% success rate</td>
+      </tr>
+      <tr>
+        <td>Position timeline</td>
+        <td class="cell-partial">Death pos only</td>
+        <td class="cell-partial">Per-frame raw</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-partial">Per-frame raw</td>
+        <td class="cell-yes">Full rate + 2D playback</td>
+        <td class="cell-yes">1/sec all players</td>
+        <td class="cell-best">33 Hz full rate</td>
+      </tr>
+      <tr>
+        <td>Stat transitions</td>
+        <td class="cell-partial">End-of-match</td>
+        <td class="cell-partial">End-of-match</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-partial">Some</td>
+        <td class="cell-yes">Full per-tick</td>
+        <td class="cell-best">27K+/match timeline</td>
+        <td class="cell-best">Full timeline</td>
+      </tr>
+      <tr>
+        <td>Kill attribution</td>
+        <td class="cell-yes">fragfile.dat</td>
+        <td class="cell-yes">fragfile.dat</td>
+        <td class="cell-yes">fragfile.dat</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">TODO stub</td>
+        <td class="cell-yes">Print msg parsing</td>
+        <td class="cell-best">75 patterns + context</td>
+        <td class="cell-best">75 patterns + context</td>
+      </tr>
+      <tr>
+        <td>KTXstats v3</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-yes">Yes</td>
+        <td class="cell-partial">Regex</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-best">Yes (hidden msg chunks)</td>
+        <td class="cell-best">Yes</td>
+      </tr>
+      <tr>
+        <td>BSP parsing</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-partial">Pre-rendered images</td>
+        <td class="cell-partial">Entity lump only (1/15)</td>
+        <td class="cell-best">Full geometry (15/15)</td>
+      </tr>
+      <tr>
+        <td>Loc files</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-best">Parse + nearest-point</td>
+        <td class="cell-best">Fused with BSP</td>
+      </tr>
+      <tr>
+        <td>PAK archives</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-best">Yes</td>
+        <td class="cell-best">Yes</td>
+      </tr>
+      <tr>
+        <td>Resource economics</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-yes">Power timeline + TP_Rating</td>
+        <td class="cell-best">Kill rating + stack value</td>
+        <td class="cell-best">Wall-aware economics</td>
+      </tr>
+      <tr>
+        <td>Team control</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-partial">Team power aggregate</td>
+        <td class="cell-best">Per-5s timeline</td>
+        <td class="cell-best">Spatial control</td>
+      </tr>
+      <tr>
+        <td>Behavioral patterns</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-best">6 Tier-B patterns</td>
+        <td class="cell-best">Geometry-informed</td>
+      </tr>
+      <tr>
+        <td>Coaching / claims</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-best">Composer + validator</td>
+        <td class="cell-best">Evidence-backed</td>
+      </tr>
+      <tr>
+        <td>3D map geometry</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-best">GPU LOS + wall-aware</td>
+      </tr>
+      <tr>
+        <td>Backpack detection</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-partial">Weapon-at-death</td>
+        <td class="cell-yes">RL/LG pack economy</td>
+        <td class="cell-yes">Entity correlation (~54%)</td>
+        <td class="cell-best">BSP-validated</td>
+      </tr>
+      <tr>
+        <td>Spatial ground truth</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">500u proximity, no walls</td>
+        <td class="cell-best">GPU ray tracing (4090)</td>
+      </tr>
+      <tr>
+        <td>2D map visualization</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-no">No</td>
+        <td class="cell-best">Real-time GUI playback</td>
+        <td class="cell-yes">Three.js + canvas</td>
+        <td class="cell-best">Synced with 3D</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pl-takeaway">
+    <h2>The Gap</h2>
+    <p>Every parser on this list works from the demo byte stream only. The most advanced (QW-Group) produces end-of-match stat tables. Even pre-north-star, MIMER was already the deepest MVD parser in existence: full state reconstruction, hidden messages, entity tracking, behavioral patterns, resource economics, evidence-backed claims.</p>
+    <p style="margin-top: 8px;">The north-star goal of fusing BSP+loc+demo is genuinely uncharted territory for QW tooling. Nobody has built a parser that knows the shape of the rooms, where items sit in 3D space, what's visible from where, or how the geometry constrains movement. That's the leap from "stats extractor" to "understands the game."</p>
+  </div>
+
+</div>
+</div><!-- end landscape tab -->
+
+<div class="tab-content" data-tab="validator">
+<div class="val-wrap">
+
+  <!-- Browse mode -->
+  <div id="valBrowseMode">
+    <div style="display:flex; gap:0; border-bottom:1px solid #333; background:#1a1a1a;">
+      <button class="val-source-tab active" data-source="firehose" style="padding:8px 20px; background:none; border:none; color:#e8e8e8; font-family:inherit; font-size:13px; cursor:pointer; border-bottom:2px solid #e44;">Firehose</button>
+      <button class="val-source-tab" data-source="curated" style="padding:8px 20px; background:none; border:none; color:#666; font-family:inherit; font-size:13px; cursor:pointer; border-bottom:2px solid transparent;">Curated</button>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:8px; padding-right:16px;">
+        <label style="font-size:11px; color:#888;">Map:</label>
+        <select id="valMapFilter" style="background:#222; color:#ccc; border:1px solid #444; padding:3px 6px; font-family:inherit; font-size:12px;">
+          <option value="">All maps</option>
+        </select>
+        <span id="valDemoCount" style="font-size:11px; color:#555;"></span>
+      </div>
+    </div>
+    <div style="flex:1; overflow-y:auto; padding:0;">
+      <table id="valDemoTable" style="width:100%; border-collapse:collapse; font-size:12px;">
+        <thead>
+          <tr style="background:#1a1a1a; position:sticky; top:0;">
+            <th style="text-align:left; padding:8px 12px; color:#888; border-bottom:1px solid #333;">Filename</th>
+            <th style="text-align:left; padding:8px 12px; color:#888; border-bottom:1px solid #333;">Map</th>
+            <th style="text-align:left; padding:8px 12px; color:#888; border-bottom:1px solid #333;">Teams</th>
+            <th style="text-align:left; padding:8px 12px; color:#888; border-bottom:1px solid #333;">Date</th>
+          </tr>
+        </thead>
+        <tbody id="valDemoTableBody"></tbody>
+      </table>
+      <div id="valBrowseStatus" style="padding:20px; text-align:center; color:#555; font-size:13px;">Loading demos...</div>
+    </div>
+  </div>
+
+  <!-- Parsing overlay -->
+  <div id="valParsingMode" style="display:none; flex:1; justify-content:center; align-items:center;">
+    <div style="text-align:center; max-width:400px;">
+      <div id="valParseFilename" style="font-size:14px; color:#e8e8e8; margin-bottom:16px;"></div>
+      <div style="background:#222; border-radius:4px; height:6px; overflow:hidden; margin-bottom:16px;">
+        <div id="valParseBar" style="height:100%; background:#e44; width:0%; transition:width 0.3s;"></div>
+      </div>
+      <div id="valParseSteps" style="font-size:12px; color:#888; text-align:left; line-height:2;"></div>
+    </div>
+  </div>
+
+  <!-- Playback mode -->
+  <div id="valPlaybackMode" style="display:none; flex-direction:column; flex:1; min-height:0;">
+    <div class="val-toolbar">
+      <button class="play-btn" id="valBackBtn" title="Back to demo browser" style="font-size:11px;">&#8592; Browse</button>
+      <span id="valPlaybackInfo" style="font-size:12px; color:#ccc;"></span>
+      <label style="font-size:11px; color:#888;">POV:</label>
+      <select id="valPovSelect" class="val-pov-select">
+        <option value="">Autotrack</option>
+      </select>
+      <button class="play-btn" id="valViewToggle" style="min-width:60px;">3D</button>
+      <button class="play-btn" id="valSyncBtn" title="Reload FTEQW at current map timeline position">Sync</button>
+      <span class="val-status" id="valStatus"></span>
+    </div>
+    <div id="valPlayerFilters" style="display:flex;gap:16px;padding:4px 16px;background:#1a1a1a;border-bottom:1px solid #222;font-size:11px;flex-wrap:wrap;"></div>
+
+    <div class="val-split">
+      <div class="val-pane-fte" id="valFtePane">
+        <div class="val-no-demo" id="valFtePlaceholder">
+          FTEQW Demo Player (local)<br>
+          <span style="font-size:12px;color:#444;">Select a demo to load</span>
+        </div>
+        <div id="valFteTime" style="position:absolute;top:6px;right:8px;font-size:12px;font-family:Consolas,monospace;color:#ff6;background:rgba(0,0,0,0.6);padding:2px 6px;border-radius:3px;z-index:10;display:none;">FTE: --:--</div>
+      </div>
+      <div class="val-pane-map" id="valMapPane">
+        <canvas id="valMapCanvas"></canvas>
+        <canvas id="valOverlayCanvas"></canvas>
+        <div id="valThreeContainer" style="position:absolute; top:0; left:0; width:100%; height:100%; display:none;"></div>
+        <div id="valMapTime" style="position:absolute;top:6px;left:8px;font-size:12px;font-family:Consolas,monospace;color:#4c8;background:rgba(0,0,0,0.6);padding:2px 6px;border-radius:3px;z-index:10;display:none;">Map: --:--</div>
+      </div>
+    </div>
+
+    <div class="val-timeline">
+      <div class="timeline-row">
+        <button class="play-btn" id="valPlayBtn">&#9654;</button>
+        <span class="time-label" id="valTimeLabel">0:00 / 0:00</span>
+        <input type="range" id="valTimeline" min="0" max="600" step="0.1" value="0">
+        <span class="speed-label" id="valSpeedLabel">1x</span>
+        <button class="play-btn" id="valSpeedBtn">2x</button>
+      </div>
+      <div class="kill-feed" id="valKillFeed"></div>
+    </div>
+  </div>
+
+</div>
+</div><!-- end validator tab -->
 
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const TEAM_COLORS = [
-  {bg: 'rgba(230, 60, 60, 0.9)', trail: 'rgba(230, 60, 60, 0.25)', dead: 'rgba(230, 60, 60, 0.3)'},
-  {bg: 'rgba(60, 130, 230, 0.9)', trail: 'rgba(60, 130, 230, 0.25)', dead: 'rgba(60, 130, 230, 0.3)'},
-  {bg: 'rgba(60, 200, 80, 0.9)', trail: 'rgba(60, 200, 80, 0.25)', dead: 'rgba(60, 200, 80, 0.3)'},
-  {bg: 'rgba(230, 180, 40, 0.9)', trail: 'rgba(230, 180, 40, 0.25)', dead: 'rgba(230, 180, 40, 0.3)'},
+  {bg: '#ff4466', trail: 'rgba(255, 68, 102, 0.25)', dead: 'rgba(255, 68, 102, 0.3)', cone: 'rgba(255, 68, 102, 0.13)'},
+  {bg: '#4477dd', trail: 'rgba(68, 119, 221, 0.25)', dead: 'rgba(68, 119, 221, 0.3)', cone: 'rgba(68, 119, 221, 0.13)'},
+  {bg: '#33bb55', trail: 'rgba(51, 187, 85, 0.25)', dead: 'rgba(51, 187, 85, 0.3)', cone: 'rgba(51, 187, 85, 0.13)'},
+  {bg: '#cc88dd', trail: 'rgba(204, 136, 221, 0.25)', dead: 'rgba(204, 136, 221, 0.3)', cone: 'rgba(204, 136, 221, 0.13)'},
 ];
+
+// Item colors (fixed — canonical QW)
+const ITEM_COLORS = {
+  quad: '#00ffff', pent: '#ff8800', ring: '#cc66ff',
+  ra: '#cc3333', ya: '#ccaa33', ga: '#33bb33',
+  rl: '#ddcc44', lg: '#ddddf8',
+};
+
+function itemKey(name) {
+  if (name === 'quad') return 'quad';
+  if (name === 'pent') return 'pent';
+  if (name === 'ring') return 'ring';
+  if (name === 'rl') return 'rl';
+  if (name === 'lg') return 'lg';
+  if (name.includes('armor')) return 'ya';
+  return null;
+}
+
+function drawItemShape(ctx, x, y, type, alpha) {
+  ctx.globalAlpha = alpha;
+  const c = ITEM_COLORS[type] || '#888';
+  if (type === 'quad') {
+    ctx.fillStyle = c;
+    ctx.beginPath(); ctx.moveTo(x, y-7); ctx.lineTo(x+6, y); ctx.lineTo(x, y+7); ctx.lineTo(x-6, y); ctx.closePath(); ctx.fill();
+  } else if (type === 'pent') {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) { const a=(i*72-90)*Math.PI/180; const px=x+7*Math.cos(a),py=y+7*Math.sin(a); i===0?ctx.moveTo(px,py):ctx.lineTo(px,py); }
+    ctx.closePath(); ctx.fill();
+  } else if (type === 'ring') {
+    ctx.strokeStyle = c; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.stroke();
+  } else if (type === 'ra' || type === 'ya' || type === 'ga') {
+    ctx.fillStyle = c;
+    ctx.beginPath(); ctx.moveTo(x, y-6); ctx.lineTo(x-5, y+4); ctx.lineTo(x+5, y+4); ctx.closePath(); ctx.fill();
+  } else if (type === 'rl') {
+    ctx.fillStyle = c;
+    ctx.fillRect(x-4, y-2, 8, 4);
+    ctx.beginPath(); ctx.moveTo(x+4, y-3); ctx.lineTo(x+7, y); ctx.lineTo(x+4, y+3); ctx.closePath(); ctx.fill();
+  } else if (type === 'lg') {
+    ctx.strokeStyle = c; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x-2, y-5); ctx.lineTo(x+1, y-1); ctx.lineTo(x-1, y+1); ctx.lineTo(x+2, y+5); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawViewCone(ctx, x, y, yawDeg, length, spreadDeg, color) {
+  const rad = yawDeg * Math.PI / 180;
+  const half = spreadDeg * Math.PI / 180 / 2;
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.moveTo(x, y);
+  ctx.lineTo(x + Math.cos(rad - half) * length, y - Math.sin(rad - half) * length);
+  ctx.lineTo(x + Math.cos(rad + half) * length, y - Math.sin(rad + half) * length);
+  ctx.closePath(); ctx.fill();
+}
+
+function drawPowerupGlow(ctx, x, y, type) {
+  const c = type === 'quad' ? '#00ffff' : '#ff8800';
+  ctx.strokeStyle = c; ctx.globalAlpha = 0.4; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI*2); ctx.stroke();
+  ctx.globalAlpha = 0.15; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(x, y, 13, 0, Math.PI*2); ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+function drawWeaponPips(ctx, x, y, flags) {
+  let px = x - 4;
+  const py = y + 8;
+  if (flags & 1) { ctx.fillStyle = ITEM_COLORS.rl; ctx.fillRect(px, py, 3, 3); px += 5; }
+  if (flags & 2) { ctx.fillStyle = ITEM_COLORS.lg; ctx.fillRect(px, py, 3, 3); }
+}
+
+function getItemStates(itemEvents, time) {
+  const states = {};
+  if (!itemEvents) return states;
+  for (const e of itemEvents) {
+    if (e.t > time) break;
+    const key = `${e.item}_${e.x}_${e.y}_${e.z}`;
+    if (e.type === 'spawn') {
+      states[key] = { item: e.item, x: e.x, y: e.y, z: e.z, available: true };
+    } else if (e.type === 'pickup') {
+      if (states[key]) states[key].available = false;
+      else states[key] = { item: e.item, x: e.x, y: e.y, z: e.z, available: false };
+    }
+  }
+  return states;
+}
 
 let data = null;
 let mapImg = null;
@@ -287,6 +888,12 @@ function getSnapshotAt(t) {
     const pa = a.positions[name];
     const pb = b.positions[name];
     if (!pb) { interpolated.positions[name] = pa; continue; }
+    // Shortest-path yaw interpolation (avoid 359→1 spinning)
+    let yawA = pa.yaw || 0, yawB = pb.yaw || 0;
+    let yawDiff = yawB - yawA;
+    if (yawDiff > 180) yawDiff -= 360;
+    if (yawDiff < -180) yawDiff += 360;
+
     interpolated.positions[name] = {
       x: pa.x + (pb.x - pa.x) * frac,
       y: pa.y + (pb.y - pa.y) * frac,
@@ -294,6 +901,9 @@ function getSnapshotAt(t) {
       alive: frac < 0.5 ? pa.alive : pb.alive,
       health: Math.round(pa.health + (pb.health - pa.health) * frac),
       armor: Math.round(pa.armor + (pb.armor - pa.armor) * frac),
+      flags: frac < 0.5 ? (pa.flags || 0) : (pb.flags || 0),
+      pitch: (pa.pitch || 0) + ((pb.pitch || 0) - (pa.pitch || 0)) * frac,
+      yaw: yawA + yawDiff * frac,
     };
   }
   return interpolated;
@@ -423,9 +1033,6 @@ function loadDemo(idx) {
   img.onload = () => { mapImg = img; drawMap(); redraw(); };
   img.src = 'data/' + currentMap.topdown_image;
 
-  // Pre-fill hub game ID
-  document.getElementById('hubGameId').value = currentDemo.hub_game_id || '';
-
   const timeline = document.getElementById('timeline');
   timeline.max = currentDemo.duration;
   timeline.value = currentTime;
@@ -498,7 +1105,6 @@ function loadDemo(idx) {
   });
 
   updateTimeLabel();
-  updateHubLinks();
 
   if (viewMode === '3d' && three_inited) {
     loadThreeMap().then(() => updateThreePlayers());
@@ -506,38 +1112,9 @@ function loadDemo(idx) {
   redraw();
 }
 
-function updateHubLinks() {
-  const gameId = document.getElementById('hubGameId').value.trim();
-  const linksDiv = document.getElementById('hubLinks');
-  if (!gameId || !currentDemo) {
-    linksDiv.innerHTML = '<span style="color:#555">Enter a hub Game ID above</span>';
-    return;
-  }
-  const baseUrl = 'https://hub.quakeworld.nu/games/';
-
-  const currentSec = Math.floor(currentTime);
-  const marks = [
-    { label: `▶ Current (${formatTime(currentSec)})`, t: Math.max(0, currentSec - 6), highlight: true },
-    { label: '05:00', t: 294 },
-    { label: '10:00', t: 594 },
-    { label: '15:00', t: 894 },
-  ].filter(m => m.t <= (currentDemo.duration || 9999));
-
-  linksDiv.innerHTML = marks.map(m => {
-    const url = `${baseUrl}?gameId=${gameId}&from=${m.t}`;
-    const style = m.highlight
-      ? 'color:#ff6;text-decoration:none;font-weight:bold;'
-      : 'color:#6af;text-decoration:none;';
-    return `<div style="margin:3px 0">
-      <a href="${url}" target="_blank" style="${style}">${m.label}</a>
-    </div>`;
-  }).join('');
-}
-
 function updateTimeLabel() {
   document.getElementById('timeLabel').textContent =
     `${formatTime(currentTime)} / ${formatTime(currentDemo?.duration || 0)}`;
-  updateHubLinks();
 }
 
 function redraw() {
@@ -614,9 +1191,6 @@ async function init() {
   });
   document.getElementById('trailLength').addEventListener('input', redraw);
 
-  // Hub links
-  document.getElementById('hubGameId').addEventListener('input', updateHubLinks);
-
   // Resize
   window.addEventListener('resize', resizeCanvases);
   resizeCanvases();
@@ -643,12 +1217,7 @@ let playerSpheres = {};
 let three_inited = false;
 let three_loaded_map = null;
 
-const TEAM_COLORS_3D = [
-  0xe63c3c,
-  0x3c82e6,
-  0x3cc850,
-  0xe6b428,
-];
+const TEAM_COLORS_3D = [0xff4466, 0x4477dd, 0x33bb55, 0xcc88dd];
 
 function resizeThree() {
   if (!threeRenderer) return;
@@ -888,173 +1457,1154 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'replay') {
       setTimeout(resizeCanvases, 50);
     }
+    if (btn.dataset.tab === 'quality') {
+      renderDQCards();
+    }
+    if (btn.dataset.tab === 'validator') {
+      // If in playback mode, resize; if in browse mode, fetch demos
+      setTimeout(() => {
+        if (document.getElementById('valPlaybackMode').style.display !== 'none') {
+          if (valViewMode === '2d') valResizeCanvases();
+          else valResizeThree();
+        } else if (document.getElementById('valBrowseMode').style.display !== 'none') {
+          // Fetch demos if the table is empty
+          if (valDemoList.length === 0) valFetchDemos(valCurrentSource);
+        }
+      }, 50);
+    }
   });
 });
 
-// --- Data Quality scorecard ---
-const DQ_METRICS = [
+// --- Validator tab ---
+
+// Glue server — same origin when served from pinnacle, fallback to localhost for dev
+const GLUE_BASE = '';
+
+const VAL_TEAM_COLORS = [
+  {bg: '#ff4466', trail: 'rgba(255, 68, 102, 0.25)', dead: 'rgba(255, 68, 102, 0.3)', cone: 'rgba(255, 68, 102, 0.13)'},
+  {bg: '#4477dd', trail: 'rgba(68, 119, 221, 0.25)', dead: 'rgba(68, 119, 221, 0.3)', cone: 'rgba(68, 119, 221, 0.13)'},
+  {bg: '#33bb55', trail: 'rgba(51, 187, 85, 0.25)', dead: 'rgba(51, 187, 85, 0.3)', cone: 'rgba(51, 187, 85, 0.13)'},
+  {bg: '#cc88dd', trail: 'rgba(204, 136, 221, 0.25)', dead: 'rgba(204, 136, 221, 0.3)', cone: 'rgba(204, 136, 221, 0.13)'},
+];
+
+let valDemo = null;
+let valMap = null;
+let valMapImg = null;
+let valTime = 0;
+let valPlaying = false;
+let valPlaySpeed = 1;
+let valLastFrame = 0;
+let valTeamColors = {};
+let valPov = '';
+let valEnabledTeams = new Set();
+let valEnabledPlayers = new Set();
+let valFteLoaded = false;
+let valViewMode = '2d';
+let valThreeScene, valThreeCamera, valThreeRenderer, valThreeControls;
+let valBspGroup = null;
+let valPlayerSpheres = {};
+let valThreeInited = false;
+let valThreeLoadedMap = null;
+let valCurrentSource = 'firehose';
+let valDemoList = [];
+
+const valMapCanvas = document.getElementById('valMapCanvas');
+const valOverlay = document.getElementById('valOverlayCanvas');
+const valMapCtx = valMapCanvas.getContext('2d');
+const valCtx = valOverlay.getContext('2d');
+
+// ---- State management: browse / parsing / playback ----
+
+function valShowMode(mode) {
+  document.getElementById('valBrowseMode').style.display = mode === 'browse' ? 'flex' : 'none';
+  document.getElementById('valParsingMode').style.display = mode === 'parsing' ? 'flex' : 'none';
+  document.getElementById('valPlaybackMode').style.display = mode === 'playback' ? 'flex' : 'none';
+}
+
+// ---- Browse mode ----
+
+async function valFetchDemos(source) {
+  const statusEl = document.getElementById('valBrowseStatus');
+  const tbody = document.getElementById('valDemoTableBody');
+  statusEl.style.display = 'block';
+  statusEl.textContent = `Loading ${source} demos...`;
+  tbody.innerHTML = '';
+
+  try {
+    const resp = await fetch(`${GLUE_BASE}/demos?source=${source}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    valDemoList = await resp.json();
+  } catch (err) {
+    statusEl.textContent = `Failed to load demos: ${err.message}. Is glue-server.js running on port 3456?`;
+    valDemoList = [];
+    return;
+  }
+
+  valPopulateDemoTable();
+}
+
+function valPopulateDemoTable() {
+  const tbody = document.getElementById('valDemoTableBody');
+  const statusEl = document.getElementById('valBrowseStatus');
+  const filterMap = document.getElementById('valMapFilter').value;
+  const countEl = document.getElementById('valDemoCount');
+
+  const filtered = filterMap
+    ? valDemoList.filter(d => d.map === filterMap)
+    : valDemoList;
+
+  if (filtered.length === 0) {
+    statusEl.style.display = 'block';
+    statusEl.textContent = valDemoList.length === 0 ? 'No demos found.' : 'No demos match filter.';
+    tbody.innerHTML = '';
+    countEl.textContent = '';
+    return;
+  }
+
+  statusEl.style.display = 'none';
+  countEl.textContent = `${filtered.length} demo${filtered.length !== 1 ? 's' : ''}`;
+
+  // Populate map filter options
+  const maps = [...new Set(valDemoList.map(d => d.map))].sort();
+  const mapFilter = document.getElementById('valMapFilter');
+  const currentFilter = mapFilter.value;
+  mapFilter.innerHTML = '<option value="">All maps</option>';
+  for (const m of maps) {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m;
+    if (m === currentFilter) opt.selected = true;
+    mapFilter.appendChild(opt);
+  }
+
+  tbody.innerHTML = '';
+  for (const demo of filtered) {
+    const tr = document.createElement('tr');
+    const teams = [demo.team1, demo.team2].filter(Boolean).join(' vs ');
+    const mapClean = (demo.map || 'unknown').toLowerCase().replace(/[\[\]]/g, '');
+    // Clean up filename for display: strip path, brackets, extension
+    let displayName = demo.filename
+      .replace(/\.mvd(\.gz)?$/, '')
+      .replace(/\[([^\]]+)\]/g, '$1');
+    tr.innerHTML = `
+      <td style="max-width:400px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${displayName}</td>
+      <td class="map-cell">${mapClean}</td>
+      <td>${teams}</td>
+      <td>${demo.date || ''}</td>
+    `;
+    tr.addEventListener('click', () => valStartParse(demo));
+    tbody.appendChild(tr);
+  }
+}
+
+// Source tabs
+document.querySelectorAll('.val-source-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.val-source-tab').forEach(t => {
+      t.classList.remove('active');
+      t.style.color = '#666';
+      t.style.borderBottomColor = 'transparent';
+    });
+    tab.classList.add('active');
+    tab.style.color = '#e8e8e8';
+    tab.style.borderBottomColor = '#e44';
+    valCurrentSource = tab.dataset.source;
+    document.getElementById('valMapFilter').value = '';
+    valFetchDemos(valCurrentSource);
+  });
+});
+
+// Map filter
+document.getElementById('valMapFilter').addEventListener('change', valPopulateDemoTable);
+
+// ---- Parsing state ----
+
+async function valStartParse(demo) {
+  valShowMode('parsing');
+  const filenameEl = document.getElementById('valParseFilename');
+  const barEl = document.getElementById('valParseBar');
+  const stepsEl = document.getElementById('valParseSteps');
+
+  filenameEl.textContent = demo.filename;
+  barEl.style.width = '10%';
+  stepsEl.innerHTML = '<div style="color:#888;">Fetching demo...</div>';
+
+  const startTime = performance.now();
+
+  try {
+    barEl.style.width = '30%';
+    stepsEl.innerHTML = '<div style="color:#4c8;">&#10003; Fetching demo</div><div style="color:#888;">Parsing on pinnacle...</div>';
+
+    const resp = await fetch(`${GLUE_BASE}/parse`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source: demo.source, path: demo.path }),
+    });
+
+    barEl.style.width = '80%';
+    const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ error: 'Unknown error' }));
+      stepsEl.innerHTML = `<div style="color:#4c8;">&#10003; Fetching demo</div><div style="color:#e44;">&#10007; Parse failed: ${err.error}</div>`;
+      barEl.style.width = '100%';
+      barEl.style.background = '#e44';
+      return;
+    }
+
+    const result = await resp.json();
+
+    // Save quality metrics for the Data Quality tab
+    if (result.quality_metrics) {
+      dqSaveMetrics(result.quality_metrics, result.demo?.filename || 'unknown');
+    }
+
+    barEl.style.width = '100%';
+    stepsEl.innerHTML = `<div style="color:#4c8;">&#10003; Fetched</div><div style="color:#4c8;">&#10003; Parsed (${elapsed}s) — ${result.demo.snapshots.length} snapshots, ${result.demo.kills.length} kills</div><div style="color:#4c8;">&#10003; Staged for FTEQW</div>`;
+
+    // Short delay then transition to playback
+    setTimeout(() => valEnterPlayback(result), 400);
+
+  } catch (err) {
+    stepsEl.innerHTML += `<div style="color:#e44;">&#10007; Error: ${err.message}</div>`;
+    barEl.style.width = '100%';
+    barEl.style.background = '#e44';
+  }
+}
+
+// ---- Playback mode ----
+
+function valEnterPlayback(result) {
+  valShowMode('playback');
+
+  valDemo = result.demo;
+  valMap = result.map;
+  valTime = valDemo.snapshots[0]?.t || 0;
+  valPlaying = false;
+  valFteLoaded = false;
+  valPov = '';
+
+  // Info bar
+  const teams = valDemo.teams.map(t => t.name).join(' vs ');
+  document.getElementById('valPlaybackInfo').textContent =
+    `${valDemo.map.toUpperCase()} — ${teams} — ${valDemo.filename}`;
+
+  // Load map image
+  valMapImg = null;
+  valDrawMap();
+  if (valMap.topdown_image) {
+    const img = new Image();
+    img.onload = () => { valMapImg = img; valDrawMap(); valDrawFrame(); };
+    img.src = 'data/' + valMap.topdown_image;
+  }
+
+  // Timeline
+  const timeline = document.getElementById('valTimeline');
+  timeline.max = valDemo.duration;
+  timeline.value = valTime;
+
+  // Team colors
+  valTeamColors = {};
+  valDemo.teams.forEach((team, i) => {
+    valTeamColors[team.name] = VAL_TEAM_COLORS[i % VAL_TEAM_COLORS.length];
+  });
+
+  // Populate POV selector grouped by team
+  const povSelect = document.getElementById('valPovSelect');
+  povSelect.innerHTML = '<option value="">Autotrack</option>';
+  valDemo.teams.forEach((team) => {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = team.name;
+    team.players.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      optgroup.appendChild(opt);
+    });
+    povSelect.appendChild(optgroup);
+  });
+
+  // Player filters — team checkboxes + player checkboxes
+  valEnabledTeams = new Set(valDemo.teams.map(t => t.name));
+  valEnabledPlayers = new Set(valDemo.players.map(p => p.name));
+
+  const filtersDiv = document.getElementById('valPlayerFilters');
+  filtersDiv.innerHTML = '';
+  valDemo.teams.forEach((team, ti) => {
+    const color = VAL_TEAM_COLORS[ti % VAL_TEAM_COLORS.length];
+    const group = document.createElement('div');
+    group.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
+    // Team checkbox
+    const teamCb = document.createElement('input');
+    teamCb.type = 'checkbox';
+    teamCb.checked = true;
+    teamCb.style.accentColor = color.bg;
+    teamCb.addEventListener('change', () => {
+      if (teamCb.checked) valEnabledTeams.add(team.name); else valEnabledTeams.delete(team.name);
+      team.players.forEach(p => {
+        if (teamCb.checked) valEnabledPlayers.add(p); else valEnabledPlayers.delete(p);
+      });
+      group.querySelectorAll('.val-player-cb').forEach(cb => cb.checked = teamCb.checked);
+      valRedraw();
+    });
+    group.appendChild(teamCb);
+
+    const teamLabel = document.createElement('span');
+    teamLabel.textContent = team.name;
+    teamLabel.style.cssText = `color:${color.bg};font-weight:bold;margin-right:4px;`;
+    group.appendChild(teamLabel);
+
+    // Player checkboxes
+    team.players.forEach(name => {
+      const pcb = document.createElement('input');
+      pcb.type = 'checkbox';
+      pcb.checked = true;
+      pcb.className = 'val-player-cb';
+      pcb.style.accentColor = color.bg;
+      pcb.addEventListener('change', () => {
+        if (pcb.checked) valEnabledPlayers.add(name); else valEnabledPlayers.delete(name);
+        valRedraw();
+      });
+      group.appendChild(pcb);
+      const pLabel = document.createElement('span');
+      pLabel.textContent = name;
+      pLabel.style.color = '#aaa';
+      group.appendChild(pLabel);
+    });
+
+    filtersDiv.appendChild(group);
+  });
+
+  // Resize and draw
+  setTimeout(() => {
+    valResizeCanvases();
+    if (valViewMode === '3d' && valThreeInited) {
+      valLoadThreeMap().then(() => valUpdateThreePlayers());
+    }
+    valRedraw();
+  }, 50);
+
+  // Load FTEQW iframe
+  valLoadFte();
+}
+
+// ---- Rendering functions (kept from original) ----
+
+function valFormatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+function valWorldToCanvas(x, y) {
+  if (!valMap) return [0, 0];
+  const margin = 10;
+  const rangeX = valMap.world_maxs[0] - valMap.world_mins[0];
+  const rangeY = valMap.world_maxs[1] - valMap.world_mins[1];
+  const scale = Math.min((valMapCanvas.width - 2 * margin) / rangeX, (valMapCanvas.height - 2 * margin) / rangeY);
+  return [
+    margin + (x - valMap.world_mins[0]) * scale,
+    margin + (y - valMap.world_mins[1]) * scale,
+  ];
+}
+
+function valResizeCanvases() {
+  const pane = document.getElementById('valMapPane');
+  if (!pane) return;
+  const w = pane.clientWidth;
+  const h = pane.clientHeight;
+  if (w === 0 || h === 0) return;
+  valMapCanvas.width = w; valMapCanvas.height = h;
+  valOverlay.width = w; valOverlay.height = h;
+  valDrawMap();
+  valDrawFrame();
+}
+
+function valDrawMap() {
+  valMapCtx.fillStyle = '#000';
+  valMapCtx.fillRect(0, 0, valMapCanvas.width, valMapCanvas.height);
+  if (valMapImg) {
+    const aspect = valMapImg.width / valMapImg.height;
+    let dw = valMapCanvas.width, dh = valMapCanvas.height;
+    if (dw / dh > aspect) { dw = dh * aspect; } else { dh = dw / aspect; }
+    valMapCtx.drawImage(valMapImg, (valMapCanvas.width - dw) / 2, (valMapCanvas.height - dh) / 2, dw, dh);
+  }
+}
+
+function valGetSnapshotAt(t) {
+  if (!valDemo) return null;
+  const snaps = valDemo.snapshots;
+  if (snaps.length === 0) return null;
+  if (t <= snaps[0].t) return snaps[0];
+  if (t >= snaps[snaps.length - 1].t) return snaps[snaps.length - 1];
+  let lo = 0;
+  for (let i = 1; i < snaps.length; i++) {
+    if (snaps[i].t > t) { lo = i - 1; break; }
+    lo = i;
+  }
+  const a = snaps[lo];
+  const b = snaps[lo + 1];
+  if (!b) return a;
+  const frac = (t - a.t) / (b.t - a.t);
+  const interpolated = { t, positions: {} };
+  for (const name of Object.keys(a.positions)) {
+    const pa = a.positions[name];
+    const pb = b.positions[name];
+    if (!pb) { interpolated.positions[name] = pa; continue; }
+    // Shortest-path yaw interpolation (avoid 359→1 spinning)
+    let yawA = pa.yaw || 0, yawB = pb.yaw || 0;
+    let yawDiff = yawB - yawA;
+    if (yawDiff > 180) yawDiff -= 360;
+    if (yawDiff < -180) yawDiff += 360;
+
+    interpolated.positions[name] = {
+      x: pa.x + (pb.x - pa.x) * frac,
+      y: pa.y + (pb.y - pa.y) * frac,
+      z: pa.z + (pb.z - pa.z) * frac,
+      alive: frac < 0.5 ? pa.alive : pb.alive,
+      health: Math.round(pa.health + (pb.health - pa.health) * frac),
+      armor: Math.round(pa.armor + (pb.armor - pa.armor) * frac),
+      flags: frac < 0.5 ? (pa.flags || 0) : (pb.flags || 0),
+      pitch: (pa.pitch || 0) + ((pb.pitch || 0) - (pa.pitch || 0)) * frac,
+      yaw: yawA + yawDiff * frac,
+    };
+  }
+  return interpolated;
+}
+
+function valGetTrail(t, seconds) {
+  if (!valDemo) return [];
+  return valDemo.snapshots.filter(s => s.t >= t - seconds && s.t <= t);
+}
+
+function valGetKills(t, window) {
+  if (!valDemo) return [];
+  return valDemo.kills.filter(k => Math.abs(k.t - t) <= window);
+}
+
+function valDrawFrame() {
+  valCtx.clearRect(0, 0, valOverlay.width, valOverlay.height);
+  if (!valDemo) return;
+
+  const snap = valGetSnapshotAt(valTime);
+  if (!snap) return;
+
+  // Trails
+  const trailSnaps = valGetTrail(valTime, 10);
+  for (const player of valDemo.players) {
+    if (!valEnabledTeams.has(player.team) || !valEnabledPlayers.has(player.name)) continue;
+    const color = valTeamColors[player.team];
+    if (!color) continue;
+    valCtx.strokeStyle = color.trail;
+    valCtx.lineWidth = 2;
+    valCtx.beginPath();
+    let started = false;
+    for (const ts of trailSnaps) {
+      const pos = ts.positions[player.name];
+      if (!pos || !pos.alive) continue;
+      if (pos.x === 0 && pos.y === 0 && pos.z === 0) continue;
+      const [cx, cy] = valWorldToCanvas(pos.x, pos.y);
+      if (!started) { valCtx.moveTo(cx, cy); started = true; }
+      else valCtx.lineTo(cx, cy);
+    }
+    valCtx.stroke();
+  }
+
+  // Kill markers
+  const recentKills = valGetKills(valTime, 2);
+  for (const k of recentKills) {
+    if (k.victim_pos) {
+      const [cx, cy] = valWorldToCanvas(k.victim_pos[0], k.victim_pos[1]);
+      valCtx.strokeStyle = 'rgba(255, 255, 100, 0.7)';
+      valCtx.lineWidth = 2;
+      const size = 6;
+      valCtx.beginPath(); valCtx.moveTo(cx - size, cy - size); valCtx.lineTo(cx + size, cy + size); valCtx.stroke();
+      valCtx.beginPath(); valCtx.moveTo(cx + size, cy - size); valCtx.lineTo(cx - size, cy + size); valCtx.stroke();
+    }
+  }
+
+  // Player dots
+  for (const player of valDemo.players) {
+    if (!valEnabledTeams.has(player.team) || !valEnabledPlayers.has(player.name)) continue;
+    const pos = snap.positions[player.name];
+    if (!pos) continue;
+    if (pos.x === 0 && pos.y === 0 && pos.z === 0) continue;
+
+    const color = valTeamColors[player.team];
+    if (!color) continue;
+    const [cx, cy] = valWorldToCanvas(pos.x, pos.y);
+    const isTracked = valPov === player.name;
+
+    // POV highlight ring
+    if (isTracked && pos.alive) {
+      valCtx.strokeStyle = '#ff6';
+      valCtx.lineWidth = 3;
+      valCtx.beginPath();
+      valCtx.arc(cx, cy, 12, 0, Math.PI * 2);
+      valCtx.stroke();
+    }
+
+    const radius = pos.alive ? 5 : 3;
+    valCtx.fillStyle = pos.alive ? color.bg : color.dead;
+    valCtx.beginPath();
+    valCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+    valCtx.fill();
+    if (pos.alive) {
+      valCtx.strokeStyle = 'rgba(255,255,255,0.4)';
+      valCtx.lineWidth = 1;
+      valCtx.stroke();
+    }
+
+    // Name labels
+    const labelStyle = isTracked ? '#ff6' : (pos.alive ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)');
+    valCtx.fillStyle = labelStyle;
+    valCtx.font = isTracked ? 'bold 11px Consolas, Menlo, monospace' : '10px Consolas, Menlo, monospace';
+    valCtx.fillText(player.name, cx + 8, cy - 4);
+    if (pos.alive) {
+      valCtx.fillStyle = 'rgba(255,255,255,0.4)';
+      valCtx.fillText(`${pos.health}/${pos.armor}`, cx + 8, cy + 7);
+    }
+  }
+
+  // Time label
+  document.getElementById('valTimeLabel').textContent =
+    `${valFormatTime(valTime)} / ${valFormatTime(valDemo?.duration || 0)}`;
+
+  // Kill feed
+  const nearKills = valGetKills(valTime, 5);
+  document.getElementById('valKillFeed').innerHTML = nearKills.map(k =>
+    `<div class="kill-entry"><span class="killer" style="${k.killer === valPov ? 'color:#ff6' : ''}">${k.killer}</span> <span class="weapon">[${k.weapon}]</span> <span class="victim" style="${k.victim === valPov ? 'color:#ff6' : ''}">${k.victim}</span></div>`
+  ).join('');
+}
+
+// ---- FTEQW iframe ----
+
+// FTEQW served through the same origin via /fte/ proxy
+const FTEQW_BASE = '/fte';
+
+function valBuildFteUrl() {
+  if (!valDemo) return null;
+  const demoFile = valDemo.filename;
+  if (!demoFile) return null;
+  let url = `${FTEQW_BASE}/?demo=${encodeURIComponent(demoFile)}`;
+  if (valDemo.map) url += `&map=${encodeURIComponent(valDemo.map)}`;
+  if (valPov) url += `&track=${encodeURIComponent(valPov)}`;
+  return url;
+}
+
+function valLoadFte() {
+  const url = valBuildFteUrl();
+  if (!url) return;
+
+  const pane = document.getElementById('valFtePane');
+  const placeholder = document.getElementById('valFtePlaceholder');
+  if (placeholder) placeholder.style.display = 'none';
+
+  let iframe = document.getElementById('valFteIframe');
+  if (iframe) iframe.remove();
+
+  iframe = document.createElement('iframe');
+  iframe.id = 'valFteIframe';
+  iframe.allow = 'autoplay';
+  iframe.style.cssText = 'width:100%;height:100%;border:none;';
+  iframe.src = url;
+
+  pane.appendChild(iframe);
+  valFteLoaded = true;
+
+  const povLabel = valPov || 'autotrack';
+  document.getElementById('valStatus').textContent = `FTEQW: ${valDemo.filename} / ${povLabel} — loading...`;
+
+  iframe.addEventListener('load', () => {
+    document.getElementById('valStatus').textContent = `FTEQW: ${valDemo.filename} / ${povLabel}`;
+  });
+}
+
+// ---- Playback controls ----
+
+// POV change
+document.getElementById('valPovSelect').addEventListener('change', (e) => {
+  valPov = e.target.value;
+  valRedraw();
+  if (valFteLoaded) valLoadFte();
+});
+
+// Sync button
+document.getElementById('valSyncBtn').addEventListener('click', () => {
+  if (valFteLoaded) {
+    // Jump FTEQW to current map time instead of reloading iframe
+    valFteCommand(`demo_jump ${Math.floor(valTime)}`);
+    if (!valPlaying) valFteCommand('demo_setspeed 0');
+  }
+});
+
+// Back to browse
+document.getElementById('valBackBtn').addEventListener('click', () => {
+  valPlaying = false;
+  document.getElementById('valPlayBtn').textContent = '\u25B6';
+  valShowMode('browse');
+});
+
+// Timeline scrub
+document.getElementById('valTimeline').addEventListener('input', () => {
+  valTime = parseFloat(document.getElementById('valTimeline').value);
+  valRedraw();
+});
+
+// Send a console command to the FTEQW iframe (same-origin via /fte/)
+function valFteCommand(cmd) {
+  try {
+    const iframe = document.getElementById('valFteIframe');
+    if (iframe && iframe.contentWindow && iframe.contentWindow.FTEC) {
+      iframe.contentWindow.FTEC.cbufadd(cmd + '\n');
+    }
+  } catch (e) { /* cross-origin or not loaded yet */ }
+}
+
+// Play/pause — controls both map view AND FTEQW
+let valSpeedIdx = 0;
+const valSpeeds = [1, 2, 4, 8];
+document.getElementById('valPlayBtn').addEventListener('click', () => {
+  valPlaying = !valPlaying;
+  document.getElementById('valPlayBtn').textContent = valPlaying ? '\u23F8' : '\u25B6';
+  valLastFrame = 0;
+  valFteCommand(valPlaying ? `demo_setspeed ${valPlaySpeed}` : 'demo_setspeed 0');
+});
+document.getElementById('valSpeedBtn').addEventListener('click', () => {
+  valSpeedIdx = (valSpeedIdx + 1) % valSpeeds.length;
+  valPlaySpeed = valSpeeds[valSpeedIdx];
+  document.getElementById('valSpeedLabel').textContent = `${valPlaySpeed}x`;
+  document.getElementById('valSpeedBtn').textContent = `${valSpeeds[(valSpeedIdx + 1) % valSpeeds.length]}x`;
+  if (valPlaying) valFteCommand(`demo_setspeed ${valPlaySpeed}`);
+});
+
+// --- Validator 3D view ---
+const VAL_TEAM_COLORS_3D = [0xff4466, 0x4477dd, 0x33bb55, 0xcc88dd];
+
+function valResizeThree() {
+  if (!valThreeRenderer) return;
+  const container = document.getElementById('valThreeContainer');
+  if (!container) return;
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  if (w === 0 || h === 0) return;
+  valThreeRenderer.setSize(w, h, false);
+  valThreeCamera.aspect = w / h;
+  valThreeCamera.updateProjectionMatrix();
+}
+
+async function valInitThree() {
+  if (valThreeInited) return;
+  const container = document.getElementById('valThreeContainer');
+  if (!container) return;
+  const w = Math.max(container.clientWidth, 800);
+  const h = Math.max(container.clientHeight, 600);
+
+  valThreeScene = new THREE.Scene();
+  valThreeScene.background = new THREE.Color(0x111111);
+
+  valThreeCamera = new THREE.PerspectiveCamera(60, w / h, 1, 20000);
+  valThreeCamera.position.set(500, 500, 1500);
+  valThreeCamera.up.set(0, 0, 1);
+
+  valThreeRenderer = new THREE.WebGLRenderer({ antialias: true });
+  valThreeRenderer.setPixelRatio(window.devicePixelRatio);
+  container.appendChild(valThreeRenderer.domElement);
+
+  valThreeControls = new OrbitControls(valThreeCamera, valThreeRenderer.domElement);
+  valThreeControls.target.set(500, 100, 0);
+  valThreeControls.enableDamping = true;
+  valThreeControls.dampingFactor = 0.1;
+  valThreeControls.update();
+
+  valThreeScene.add(new THREE.AmbientLight(0x404040, 2));
+  const dir1 = new THREE.DirectionalLight(0xffffff, 1.5);
+  dir1.position.set(1000, 1000, 2000);
+  valThreeScene.add(dir1);
+  const dir2 = new THREE.DirectionalLight(0x6688cc, 0.8);
+  dir2.position.set(-1000, -500, 500);
+  valThreeScene.add(dir2);
+
+  valThreeInited = true;
+  valResizeThree();
+}
+
+async function valLoadThreeMap() {
+  if (!valThreeScene || !valDemo) return;
+  const mapName = valDemo.map;
+  if (mapName === valThreeLoadedMap) return;
+
+  if (valBspGroup) {
+    valThreeScene.remove(valBspGroup);
+    valBspGroup.traverse(child => {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) child.material.dispose();
+    });
+  }
+
+  try {
+    const [vertBuf, triBuf] = await Promise.all([
+      fetch(`data/${mapName}/vertexes.bin`).then(r => { if (!r.ok) throw new Error('no BSP'); return r.arrayBuffer(); }),
+      fetch(`data/${mapName}/triangles.bin`).then(r => { if (!r.ok) throw new Error('no BSP'); return r.arrayBuffer(); }),
+    ]);
+
+    const verts = new Float32Array(vertBuf);
+    const tris = new Int32Array(triBuf);
+    const indices = new Uint32Array(tris.length);
+    for (let i = 0; i < tris.length; i++) indices[i] = tris[i];
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+    geo.setIndex(new THREE.BufferAttribute(indices, 1));
+    geo.computeVertexNormals();
+
+    valBspGroup = new THREE.Group();
+    valBspGroup.add(new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+      color: 0x556666, side: THREE.DoubleSide, transparent: true, opacity: 0.6,
+    })));
+    valBspGroup.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+      color: 0x334444, wireframe: true, transparent: true, opacity: 0.15,
+    })));
+    valThreeScene.add(valBspGroup);
+
+    geo.computeBoundingBox();
+    const center = new THREE.Vector3();
+    geo.boundingBox.getCenter(center);
+    const size = new THREE.Vector3();
+    geo.boundingBox.getSize(size);
+    valThreeControls.target.copy(center);
+    valThreeCamera.position.set(center.x, center.y - size.y * 0.5, center.z + size.z * 1.5);
+    valThreeControls.update();
+
+    valThreeLoadedMap = mapName;
+  } catch {
+    // Map BSP data not available — skip 3D map geometry
+    valThreeLoadedMap = mapName;
+  }
+}
+
+function valUpdateThreePlayers() {
+  if (!valThreeScene || !valDemo) return;
+  const snap = valGetSnapshotAt(valTime);
+  if (!snap) return;
+
+  for (const name of Object.keys(valPlayerSpheres)) {
+    valThreeScene.remove(valPlayerSpheres[name].mesh);
+    if (valPlayerSpheres[name].label) valThreeScene.remove(valPlayerSpheres[name].label);
+  }
+  valPlayerSpheres = {};
+
+  for (const player of valDemo.players) {
+    if (!valEnabledTeams.has(player.team) || !valEnabledPlayers.has(player.name)) continue;
+    const pos = snap.positions[player.name];
+    if (!pos) continue;
+    if (pos.x === 0 && pos.y === 0 && pos.z === 0) continue;
+
+    const teamIdx = valDemo.teams.findIndex(t => t.name === player.team);
+    const color = VAL_TEAM_COLORS_3D[teamIdx % VAL_TEAM_COLORS_3D.length];
+    const isTracked = valPov === player.name;
+
+    const radius = pos.alive ? (isTracked ? 20 : 16) : 10;
+    const sphereGeo = new THREE.SphereGeometry(radius, 12, 8);
+    const sphereMat = new THREE.MeshPhongMaterial({
+      color: isTracked ? 0xffff44 : color,
+      emissive: isTracked ? 0xffff44 : color,
+      emissiveIntensity: pos.alive ? (isTracked ? 0.7 : 0.4) : 0.1,
+      transparent: !pos.alive,
+      opacity: pos.alive ? 1.0 : 0.4,
+    });
+    const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+    sphere.position.set(pos.x, pos.y, pos.z + 24);
+    valThreeScene.add(sphere);
+
+    // POV ring in 3D
+    if (isTracked && pos.alive) {
+      const ringGeo = new THREE.RingGeometry(24, 28, 24);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffff44, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.position.set(pos.x, pos.y, pos.z + 2);
+      ring.rotation.x = 0;
+      valThreeScene.add(ring);
+      valPlayerSpheres[player.name + '_ring'] = { mesh: ring, label: null };
+    }
+
+    const canvas2 = document.createElement('canvas');
+    canvas2.width = 256; canvas2.height = 64;
+    const c2 = canvas2.getContext('2d');
+    c2.font = isTracked ? 'bold 30px Consolas, monospace' : 'bold 28px Consolas, monospace';
+    c2.fillStyle = isTracked ? '#ffff44' : (pos.alive ? '#ffffff' : '#666666');
+    c2.fillText(player.name, 4, 30);
+    c2.font = '20px Consolas, monospace';
+    c2.fillStyle = '#aaaaaa';
+    c2.fillText(`${pos.health}/${pos.armor}`, 4, 54);
+
+    const tex = new THREE.CanvasTexture(canvas2);
+    const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+    const sprite = new THREE.Sprite(spriteMat);
+    sprite.position.set(pos.x + 20, pos.y, pos.z + 56);
+    sprite.scale.set(120, 30, 1);
+    valThreeScene.add(sprite);
+
+    valPlayerSpheres[player.name] = { mesh: sphere, label: sprite };
+  }
+
+  // Kill markers
+  const recentKills = valGetKills(valTime, 2);
+  for (const k of recentKills) {
+    if (k.victim_pos) {
+      const crossGeo = new THREE.SphereGeometry(12, 6, 4);
+      const crossMat = new THREE.MeshBasicMaterial({ color: 0xffff44 });
+      const cross = new THREE.Mesh(crossGeo, crossMat);
+      cross.position.set(k.victim_pos[0], k.victim_pos[1], (k.victim_pos[2] || 0) + 24);
+      valThreeScene.add(cross);
+      valPlayerSpheres['_kill_' + k.t + k.victim] = { mesh: cross, label: null };
+    }
+  }
+}
+
+function valRenderThree() {
+  if (valViewMode !== '3d' || !valThreeRenderer) return;
+  valResizeThree();
+  valThreeControls.update();
+  valThreeRenderer.render(valThreeScene, valThreeCamera);
+}
+
+function valRedraw() {
+  if (valViewMode === '2d') {
+    valDrawFrame();
+  } else {
+    valUpdateThreePlayers();
+    valRenderThree();
+  }
+}
+
+// View toggle
+document.getElementById('valViewToggle').addEventListener('click', () => {
+  const btn = document.getElementById('valViewToggle');
+  const mapC = document.getElementById('valMapCanvas');
+  const overC = document.getElementById('valOverlayCanvas');
+  const threeC = document.getElementById('valThreeContainer');
+
+  if (valViewMode === '2d') {
+    valViewMode = '3d';
+    btn.textContent = '2D';
+    mapC.style.display = 'none';
+    overC.style.display = 'none';
+    threeC.style.display = 'block';
+    valInitThree().then(() => valLoadThreeMap()).then(() => {
+      valResizeThree();
+      valUpdateThreePlayers();
+    });
+  } else {
+    valViewMode = '2d';
+    btn.textContent = '3D';
+    mapC.style.display = 'block';
+    overC.style.display = 'block';
+    threeC.style.display = 'none';
+    valDrawMap();
+    valDrawFrame();
+  }
+});
+
+// Read FTEQW demo time from iframe (same-origin)
+function valGetFteTime() {
+  try {
+    const iframe = document.getElementById('valFteIframe');
+    if (iframe && iframe.contentWindow) {
+      // Try newtube bindings first
+      if (iframe.contentWindow.Module && iframe.contentWindow.Module.getDemoTime) {
+        return iframe.contentWindow.Module.getDemoTime();
+      }
+      // Try getClientState
+      if (iframe.contentWindow.Module && iframe.contentWindow.Module.getClientState) {
+        const cs = iframe.contentWindow.Module.getClientState();
+        if (cs) return cs.gametime;
+      }
+    }
+  } catch (e) { /* not loaded yet */ }
+  return null;
+}
+
+function valUpdateTimeOverlays() {
+  const fteEl = document.getElementById('valFteTime');
+  const mapEl = document.getElementById('valMapTime');
+  if (!valDemo) { fteEl.style.display = 'none'; mapEl.style.display = 'none'; return; }
+
+  // Map time
+  mapEl.style.display = 'block';
+  mapEl.textContent = `Map: ${valFormatTime(valTime)}`;
+
+  // FTEQW time
+  const fteTime = valGetFteTime();
+  fteEl.style.display = 'block';
+  if (fteTime !== null) {
+    fteEl.textContent = `FTE: ${valFormatTime(fteTime)}`;
+    // Color: green if in sync (<2s), yellow if drifting, red if far apart
+    const drift = Math.abs(fteTime - valTime);
+    fteEl.style.color = drift < 2 ? '#4c8' : drift < 5 ? '#da4' : '#e44';
+  } else {
+    fteEl.textContent = 'FTE: --:--';
+    fteEl.style.color = '#666';
+  }
+}
+
+function valAnimate(ts) {
+  if (valPlaying && valDemo) {
+    if (valLastFrame > 0) {
+      const dt = (ts - valLastFrame) / 1000 * valPlaySpeed;
+      valTime = Math.min(valTime + dt, valDemo.duration);
+      document.getElementById('valTimeline').value = valTime;
+      valRedraw();
+      if (valTime >= valDemo.duration) {
+        valPlaying = false;
+        document.getElementById('valPlayBtn').textContent = '\u25B6';
+        valFteCommand('demo_setspeed 0');
+      }
+    }
+    valLastFrame = ts;
+  } else if (valViewMode === '3d') {
+    valRenderThree();
+  }
+  valUpdateTimeOverlays();
+  requestAnimationFrame(valAnimate);
+}
+requestAnimationFrame(valAnimate);
+
+window.addEventListener('resize', () => {
+  const activeTab = document.querySelector('.tab-btn.active');
+  if (activeTab && activeTab.dataset.tab === 'validator') {
+    if (valViewMode === '2d') valResizeCanvases();
+    else valResizeThree();
+  }
+});
+
+// --- Data Quality Gates ---
+const DQ_GATES = [
   {
-    title: "Byte Accounting (Frame Level)",
-    why: "Every byte in the demo file must be consumed by a named handler. Unknown bytes mean data we're dropping silently. Frame-level accounting verifies the MVD envelope is fully walked.",
-    baseline: 100,
-    baselineLabel: "100%",
-    baselineDetail: "1,031,334 frames across 5 demos, zero unknown frame types",
-    demopasha: null,
-    target: 100,
+    id: 'effective_hz',
+    title: 'Position Capture Rate (Hz)',
+    why: 'Snapshots per second of match time. QW servers run at ~36 or ~72 fps. Higher = finer-grained movement data for coaching analysis.',
+    baseline: 0.5,
+    baselineLabel: '0.5 Hz',
+    target: 25,
+    targetLabel: '≥25 Hz',
+    unit: 'Hz',
+    extract: (qm) => qm?.effective_hz ?? null,
+    detail: (qm) => qm ? `${(qm.snapshots_captured||0).toLocaleString()} snapshots over ${qm.match_duration_secs||0}s. ${(qm.mvd_frame_count||0).toLocaleString()} total MVD frames, ${(qm.unique_frame_times||0).toLocaleString()} with position data.` : null,
   },
   {
-    title: "Byte Accounting (Message Level)",
-    why: "Inside each frame, every svc_* message must be fully parsed. This is where the real data loss happens: entity parse failures (~3.5%), broken frame loops on errors, and skipped variable-length messages. Mimer doesn't track this.",
-    baseline: null,
-    baselineLabel: "NOT TRACKED",
-    baselineDetail: "Mimer does not report per-message byte consumption. Data loss is invisible.",
-    demopasha: null,
-    target: 100,
-  },
-  {
-    title: "Hidden Message Type Coverage",
-    why: "MVD hidden messages carry damage events, KTXstats, weapon instructions, antilag data, and timestamps. Each type parsed unlocks a different analytical capability. Mimer handles 6 types; the demos contain 10-13.",
-    baseline: 46,
-    baselineLabel: "6 of 13 types",
-    baselineDetail: "Parses: ANTILAG, USERCMD, USERCMD_WEAPONS, KTXSTATS, DMGDONE, USERCMD_WEAPONS_SS. Skips: WEAPON_INSTRUCTION, types 4/5/6, plus unexpected high IDs (2048, 8086).",
-    demopasha: null,
-    target: 100,
-  },
-  {
-    title: "Entity Parse Success Rate",
-    why: "Entity updates carry item spawns, backpack positions, projectile locations, and powerup states. The ~3.5% failure rate means ~1 in 28 entity updates is silently dropped, losing item tracking and backpack attribution data.",
-    baseline: 96.5,
-    baselineLabel: "~96.5%",
-    baselineDetail: "Estimated from code audit. Per-demo measurement requires instrumented parser. Failures are from uncovered FTE delta bits in U_* flag combinations.",
-    demopasha: null,
-    target: 100,
-  },
-  {
-    title: "Position Update Rate",
-    why: "Player positions are the foundation of all spatial analysis: coordination, line-of-sight, zone control, movement patterns. The demo contains ~33 Hz updates; mimer downsamples to 0.5 Hz, losing 65x the available resolution.",
-    baseline: 1.5,
-    baselineLabel: "0.5 Hz",
-    baselineDetail: "~87,000 svc_playerinfo per demo (33 Hz actual) downsampled to ~600 snapshots (0.5 Hz). Interval hardcoded at 2 seconds in state layer.",
-    demopasha: null,
-    demopashaLabel: null,
-    target: 100,
-    targetLabel: "33 Hz (full rate)",
-    unit: "hz",
-    baselineRaw: 0.5,
-    targetRaw: 33,
-  },
-  {
-    title: "BSP Lump Coverage",
-    why: "BSP v29 has 15 lumps containing map geometry, collision data, visibility sets, textures, and lighting. Mimer reads only the entity lump (item/weapon spawn coordinates). Without the other 14, there's no wall-aware spatial analysis.",
-    baseline: 6.7,
-    baselineLabel: "1 of 15 lumps",
-    baselineDetail: "Reads: entities (partial — 17 classnames). Ignores: planes, vertexes, faces, edges, surfedges, clipnodes, nodes, leaves, marksurfaces, texinfo, miptex, lightmaps, visibility, models.",
-    demopasha: null,
-    target: 100,
-  },
-  {
-    title: "Cross-Validation Witnesses",
-    why: "A single parser can be consistently wrong and never know it. Independent witnesses (a second parser in a different language, KTXstats cross-checks, GPU spatial validation) catch bugs that self-testing misses.",
-    baseline: 16.7,
-    baselineLabel: "1 parser",
-    baselineDetail: "Only mimer itself. Partial KTXstats cross-check (frags/deaths only). No second parser, no roundtrip test, no GPU validation.",
-    demopasha: null,
-    target: 100,
-    targetLabel: "2 parsers + GPU + KTX",
-  },
-  {
-    title: "Spatial Ground Truth",
-    why: "Mimer uses a 500-unit proximity heuristic at 1 Hz with no wall awareness for coordination and spatial features. This means two players on opposite sides of a wall register as 'coordinated'. GPU ray tracing through BSP geometry gives real line-of-sight.",
+    id: 'angle_coverage',
+    title: 'View Angle Coverage',
+    why: 'Valid pitch/yaw data for alive players. MVD uses delta compression — angles persist until the next update, so coverage tracks whether each player has ever received angle data.',
     baseline: 0,
-    baselineLabel: "None",
-    baselineDetail: "500-unit proximity, 1 Hz snapshots, no wall awareness. No LOS checks. No PVS validation. Phase 0 POC proved 4090 can do 24B clipnode queries/sec.",
-    demopasha: null,
+    baselineLabel: '0%',
+    target: 95,
+    targetLabel: '≥95%',
+    unit: '%',
+    extract: (qm) => qm?.angle_coverage_pct ?? null,
+    detail: (qm) => qm ? `${(qm.angles_valid||0).toLocaleString()} valid / ${(qm.angles_alive_total||0).toLocaleString()} alive snapshots. Snapshots with fresh DF_ANGLES: ${qm.angles_with_update_pct||0}% (rest use persisted values from delta compression).` : null,
+  },
+  {
+    id: 'antilag_separation',
+    title: 'Antilag Cross-Validation',
+    why: 'Antilag positions are the server\'s ground truth for hit detection. Comparing them against playerinfo catches parse bugs automatically.',
+    baseline: null,
+    baselineLabel: 'mixed (bug)',
+    target: null,
+    targetLabel: 'mean <10u',
+    unit: 'delta',
+    extract: (qm) => {
+      if (!qm || qm.antilag_messages_received === 0) return null;
+      return qm.antilag_comparisons > 0 ? Math.max(0, 100 - qm.antilag_mean_delta * 10) : null;
+    },
+    detail: (qm) => {
+      if (!qm) return null;
+      if (qm.antilag_messages_received === 0) return `0 antilag messages in this demo. Need demos from antilag-enabled servers.`;
+      return `${qm.antilag_comparisons} same-frame comparisons. Mean Δ${qm.antilag_mean_delta}u, P95 Δ${qm.antilag_p95_delta}u, Max Δ${qm.antilag_max_delta}u. Outliers >50u: ${qm.antilag_outliers_gt_50u}`;
+    },
+  },
+  {
+    id: 'entity_parse',
+    title: 'Entity Parse Success Rate',
+    why: 'Entity updates carry item spawns, backpack positions, and powerup states. The ~3.5% failure rate loses tracking data silently.',
+    baseline: 96.5,
+    baselineLabel: '~96.5%',
     target: 100,
-    targetLabel: "GPU LOS + wall-aware distance",
+    targetLabel: '100%',
+    unit: '%',
+    extract: () => null, // not yet instrumented
+    detail: () => 'Not yet instrumented — needs success/failure counters in entity parser.',
+  },
+  {
+    id: 'bsp_lumps',
+    title: 'BSP Lump Coverage',
+    why: 'BSP v29 has 15 lumps. Without geometry data, no wall-aware spatial analysis is possible.',
+    baseline: 6.7,
+    baselineLabel: '1/15 lumps',
+    target: 100,
+    targetLabel: '15/15',
+    unit: 'lumps',
+    extract: () => null,
+    detail: () => 'Entity lump only. Geometry extraction done for 5 maps in Phase 0 POC.',
+  },
+  {
+    id: 'hidden_msg_coverage',
+    title: 'Hidden Message Type Coverage',
+    why: 'MVD hidden messages carry damage, KTXstats, antilag, weapon instructions. Each type parsed unlocks new analysis.',
+    baseline: 46,
+    baselineLabel: '6/13 types',
+    target: 100,
+    targetLabel: '13/13',
+    unit: 'types',
+    extract: () => null,
+    detail: () => 'Parses 6: ANTILAG, USERCMD, USERCMD_WEAPONS, KTXSTATS, DMGDONE, USERCMD_WEAPONS_SS.',
+  },
+  {
+    id: 'spatial_ground_truth',
+    title: 'Spatial Ground Truth',
+    why: 'GPU ray tracing through BSP geometry gives real line-of-sight and wall-aware distance between players.',
+    baseline: 0,
+    baselineLabel: 'None',
+    target: 100,
+    targetLabel: 'GPU LOS',
+    unit: 'spatial',
+    extract: () => null,
+    detail: () => 'Phase 0 POC proved 4090 can do 24B clipnode queries/sec. Not yet integrated into parser pipeline.',
   },
 ];
+
+// localStorage keys
+const DQ_METRICS_KEY = 'dq_latest_metrics';
+const DQ_LOCKED_KEY = 'dq_locked_gates';
+const DQ_PARSE_INFO_KEY = 'dq_last_parse_info';
+
+function dqGetMetrics() {
+  try { return JSON.parse(localStorage.getItem(DQ_METRICS_KEY)) || null; } catch { return null; }
+}
+
+function dqSaveMetrics(qm, filename) {
+  localStorage.setItem(DQ_METRICS_KEY, JSON.stringify(qm));
+  localStorage.setItem(DQ_PARSE_INFO_KEY, JSON.stringify({ filename, time: new Date().toISOString() }));
+}
+
+function dqGetLocked() {
+  try { return JSON.parse(localStorage.getItem(DQ_LOCKED_KEY)) || {}; } catch { return {}; }
+}
+
+function dqLockGate(gateId, value) {
+  const locked = dqGetLocked();
+  locked[gateId] = { value, time: new Date().toISOString() };
+  localStorage.setItem(DQ_LOCKED_KEY, JSON.stringify(locked));
+  renderDQCards();
+}
+
+function dqUnlockGate(gateId) {
+  const locked = dqGetLocked();
+  delete locked[gateId];
+  localStorage.setItem(DQ_LOCKED_KEY, JSON.stringify(locked));
+  renderDQCards();
+}
 
 function renderDQCards() {
   const grid = document.getElementById('dqGrid');
   grid.innerHTML = '';
+  const qm = dqGetMetrics();
+  const locked = dqGetLocked();
+  let gatesPassed = 0;
+  let gatesTotal = 0;
 
-  for (const m of DQ_METRICS) {
-    const card = document.createElement('div');
-    card.className = 'dq-card';
+  // Show last parse info
+  const parseInfo = (() => { try { return JSON.parse(localStorage.getItem(DQ_PARSE_INFO_KEY)); } catch { return null; } })();
+  const parseEl = document.getElementById('dqLastParse');
+  if (parseInfo) {
+    const ago = Math.round((Date.now() - new Date(parseInfo.time).getTime()) / 60000);
+    parseEl.innerHTML = `<span style="font-size:12px;color:#666;">Last parse: <span style="color:#aaa;">${parseInfo.filename}</span> · ${ago < 1 ? 'just now' : ago + 'm ago'}</span>`;
+  } else {
+    parseEl.innerHTML = '<span style="font-size:12px;color:#555;">No demo parsed yet — use the Validator tab</span>';
+  }
 
-    const baselinePct = m.baseline ?? 0;
-    const demopashaPct = m.demopasha ?? null;
-    const baselineColor = baselinePct >= 90 ? '#4c8' : baselinePct >= 50 ? '#da4' : '#e44';
+  for (const gate of DQ_GATES) {
+    gatesTotal++;
+    const current = gate.extract(qm);
+    const lockedVal = locked[gate.id]?.value ?? null;
+    // Regression: locked gate but current dropped below, OR locked gate but metric now missing
+    const isRegression = lockedVal !== null && (current === null || current < lockedVal);
+    const meetsTarget = current !== null && gate.target !== null && current >= gate.target;
+    const hasData = current !== null;
 
-    let barsHtml = '';
-
-    // Baseline bar — always red
-    barsHtml += `
-      <div class="dq-bar-wrap">
-        <div class="dq-bar-label">
-          <span class="name">Mimer baseline</span>
-          <span class="val" style="color:#e44">${m.baselineLabel}</span>
-        </div>
-        <div class="dq-bar">
-          <div class="dq-bar-fill" style="width:${baselinePct}%; background:#e44;"></div>
-        </div>
-      </div>`;
-
-    // demopasha bar — always blue
-    if (demopashaPct !== null) {
-      barsHtml += `
-        <div class="dq-bar-wrap">
-          <div class="dq-bar-label">
-            <span class="name">demopasha</span>
-            <span class="val" style="color:#48f">${m.demopashaLabel || demopashaPct + '%'}</span>
-          </div>
-          <div class="dq-bar">
-            <div class="dq-bar-fill" style="width:${demopashaPct}%; background:#48f;"></div>
-          </div>
-        </div>`;
+    let status, statusColor, borderColor;
+    if (isRegression) {
+      status = current === null ? 'REGRESSION (no data)' : 'REGRESSION';
+      statusColor = '#e44';
+      borderColor = '#e44';
+    } else if (meetsTarget) {
+      status = 'GATE PASSED';
+      statusColor = '#4c8';
+      borderColor = '#4c8';
+      gatesPassed++;
+    } else if (hasData && gate.target === null) {
+      // Metric with no numeric target (like antilag — qualitative)
+      status = 'MEASURED';
+      statusColor = '#48f';
+      borderColor = '#48f';
+      gatesPassed++; // qualitative gates count as passed when measured
+    } else if (hasData) {
+      status = 'IN PROGRESS';
+      statusColor = '#da4';
+      borderColor = '#da4';
     } else {
-      barsHtml += `
-        <div class="dq-bar-wrap">
-          <div class="dq-bar-label">
-            <span class="name">demopasha</span>
-            <span class="val" style="color:#555">not started</span>
-          </div>
-          <div class="dq-bar">
-            <div class="dq-bar-fill" style="width:0%; background:#48f;"></div>
-          </div>
-        </div>`;
+      status = 'NOT STARTED';
+      statusColor = '#555';
+      borderColor = '#e44';
     }
 
-    // Target bar — always green
-    barsHtml += `
-      <div class="dq-bar-wrap">
-        <div class="dq-bar-label">
-          <span class="name">Target</span>
-          <span class="val" style="color:#4c8">${m.targetLabel || '100%'}</span>
-        </div>
-        <div class="dq-bar">
-          <div class="dq-bar-fill" style="width:100%; background:#4c8; opacity:0.3;"></div>
-        </div>
-      </div>`;
+    const card = document.createElement('div');
+    card.className = 'dq-card';
+    card.style.borderLeft = `3px solid ${borderColor}`;
+
+    const fmtVal = (v, unit) => v === null ? '—' : unit === '%' ? v + '%' : v.toFixed(1) + (unit === 'Hz' ? ' Hz' : '');
+    const currentLabel = fmtVal(current, gate.unit);
+    const currentColor = isRegression ? '#e44' : meetsTarget ? '#4c8' : hasData ? '#da4' : '#555';
+    const lockedLabel = fmtVal(lockedVal, gate.unit);
+
+    const barPct = current !== null && gate.target !== null ? Math.min(100, current / gate.target * 100) : (current !== null ? 50 : 0);
+
+    const detailText = gate.detail(qm) || gate.detail(null) || '';
+
+    let lockBtnHtml = '';
+    const canLock = (meetsTarget || (hasData && gate.target === null)) && !locked[gate.id];
+    if (canLock) {
+      lockBtnHtml = `<button onclick="dqLockGate('${gate.id}', ${current})" style="background:#1a3a1a;color:#4c8;border:1px solid #2a4a2a;padding:2px 8px;font-size:10px;cursor:pointer;border-radius:3px;font-family:inherit;">Lock Gate</button>`;
+    } else if (locked[gate.id]) {
+      lockBtnHtml = `<span style="color:#4c8;font-size:10px;">🔒 Locked at ${lockedLabel}</span> <button onclick="dqUnlockGate('${gate.id}')" style="background:none;color:#555;border:1px solid #333;padding:1px 6px;font-size:9px;cursor:pointer;border-radius:3px;font-family:inherit;">unlock</button>`;
+    }
 
     card.innerHTML = `
-      <h3>${m.title}</h3>
-      <div class="why">${m.why}</div>
-      ${barsHtml}
-      <div class="dq-detail">${m.baselineDetail}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <h3 style="margin:0;">${gate.title}</h3>
+        <span style="background:${statusColor}22;color:${statusColor};padding:2px 8px;border-radius:3px;font-size:10px;font-weight:bold;">${status}</span>
+      </div>
+      <div class="why">${gate.why}</div>
+      <div style="display:flex;gap:20px;margin:8px 0 6px;">
+        <div><span style="color:#666;font-size:10px;">Baseline</span><br><span style="color:#e44;">${gate.baselineLabel}</span></div>
+        <div><span style="color:#666;font-size:10px;">Current</span><br><span style="color:${currentColor};font-weight:bold;">${currentLabel}</span></div>
+        <div><span style="color:#666;font-size:10px;">Target</span><br><span style="color:#888;">${gate.targetLabel}</span></div>
+        ${lockedVal !== null ? `<div><span style="color:#666;font-size:10px;">Locked floor</span><br><span style="color:#4c8;">${lockedLabel}</span></div>` : ''}
+      </div>
+      <div class="dq-bar" style="margin:8px 0;">
+        <div class="dq-bar-fill" style="width:${barPct}%; background:${isRegression ? '#e44' : meetsTarget ? '#4c8' : hasData ? '#da4' : '#333'};"></div>
+      </div>
+      <div class="dq-detail">${detailText}</div>
+      ${isRegression ? `<div style="color:#e44;font-size:11px;margin-top:6px;font-weight:bold;">⚠ Was ${lockedLabel}, now ${currentLabel} — investigate before merging</div>` : ''}
+      <div style="margin-top:8px;">${lockBtnHtml}</div>
     `;
 
     grid.appendChild(card);
   }
 
-  // Compute aggregate demopasha current score
-  const measurable = DQ_METRICS.filter(m => m.demopasha !== null);
-  const currentPct = measurable.length > 0
-    ? Math.round(measurable.reduce((s, m) => s + m.demopasha, 0) / DQ_METRICS.length)
-    : Math.round(DQ_METRICS.filter(m => m.baseline !== null).reduce((s, m) => s + m.baseline, 0) / DQ_METRICS.filter(m => m.baseline !== null).length);
-  const el = document.getElementById('dqCurrentScore');
-  el.textContent = currentPct + '%';
-  el.style.color = '#48f';
+  document.getElementById('dqGatesPassed').textContent = gatesPassed;
+  document.getElementById('dqGatesTotal').textContent = gatesTotal;
 }
 
 renderDQCards();
