@@ -1396,20 +1396,55 @@ function updateThreePlayers() {
     const teamIdx = currentDemo.teams.findIndex(t => t.name === player.team);
     const color = TEAM_COLORS_3D[teamIdx % TEAM_COLORS_3D.length];
 
+    const group = new THREE.Group();
+    group.position.set(pos.x, pos.y, pos.z + 24);
+
+    // Player sphere
     const radius = pos.alive ? 16 : 10;
     const sphereGeo = new THREE.SphereGeometry(radius, 12, 8);
     const sphereMat = new THREE.MeshPhongMaterial({
-      color: color,
-      emissive: color,
+      color, emissive: color,
       emissiveIntensity: pos.alive ? 0.4 : 0.1,
-      transparent: !pos.alive,
-      opacity: pos.alive ? 1.0 : 0.4,
+      transparent: !pos.alive, opacity: pos.alive ? 1.0 : 0.4,
     });
-    const sphere = new THREE.Mesh(sphereGeo, sphereMat);
-    sphere.position.set(pos.x, pos.y, pos.z + 24);
-    threeScene.add(sphere);
+    group.add(new THREE.Mesh(sphereGeo, sphereMat));
 
-    // Player name sprite
+    // View cone (alive only)
+    if (pos.alive && pos.yaw !== undefined) {
+      const coneLen = 40;
+      const halfAngle = 20 * Math.PI / 180;
+      const coneRadius = coneLen * Math.tan(halfAngle);
+      const coneGeo = new THREE.ConeGeometry(coneRadius, coneLen, 16, 1, true);
+      coneGeo.rotateZ(-Math.PI / 2);
+      coneGeo.translate(coneLen / 2, 0, 0);
+      const coneMat = new THREE.MeshBasicMaterial({
+        color, transparent: true, opacity: 0.15,
+        side: THREE.DoubleSide, depthWrite: false,
+      });
+      const cone = new THREE.Mesh(coneGeo, coneMat);
+      cone.rotation.z = pos.yaw * Math.PI / 180;
+      group.add(cone);
+    }
+
+    // Powerup glow
+    const flags = pos.flags || 0;
+    if (pos.alive && (flags & 4 || flags & 8)) {
+      const glowColor = (flags & 4) ? 0x00ffff : 0xff8800;
+      const ringGeo = new THREE.RingGeometry(20, 25, 32);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: glowColor, transparent: true, opacity: 0.4,
+        side: THREE.DoubleSide, depthWrite: false,
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.z = -22;
+      group.add(ring);
+      group.add(new THREE.PointLight(glowColor, 0.8, 80));
+    }
+
+    threeScene.add(group);
+
+    // Name label sprite
     const canvas2 = document.createElement('canvas');
     canvas2.width = 256; canvas2.height = 64;
     const c2 = canvas2.getContext('2d');
@@ -1419,7 +1454,6 @@ function updateThreePlayers() {
     c2.font = '20px Consolas, monospace';
     c2.fillStyle = '#aaaaaa';
     c2.fillText(`${pos.health}/${pos.armor}`, 4, 54);
-
     const tex = new THREE.CanvasTexture(canvas2);
     const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true });
     const sprite = new THREE.Sprite(spriteMat);
@@ -1427,7 +1461,48 @@ function updateThreePlayers() {
     sprite.scale.set(120, 30, 1);
     threeScene.add(sprite);
 
-    playerSpheres[player.name] = { mesh: sphere, label: sprite };
+    playerSpheres[player.name] = { mesh: group, label: sprite };
+  }
+
+  // Remove old item meshes
+  if (window._threeItemMeshes) {
+    for (const m of window._threeItemMeshes) threeScene.remove(m);
+  }
+  window._threeItemMeshes = [];
+
+  const itemStates = getItemStates(currentDemo.itemEvents, currentTime);
+  const showPowerups = document.getElementById('showItemsPowerups')?.checked ?? true;
+  const showWeapons = document.getElementById('showItemsWeapons')?.checked ?? true;
+  const showArmor = document.getElementById('showItemsArmor')?.checked ?? true;
+
+  for (const st of Object.values(itemStates)) {
+    const ik = itemKey(st.item);
+    if (!ik) continue;
+    const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
+    const isWeapon = ik === 'rl' || ik === 'lg';
+    const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
+    if (isPowerup && !showPowerups) continue;
+    if (isWeapon && !showWeapons) continue;
+    if (isArmor && !showArmor) continue;
+
+    const hex = parseInt((ITEM_COLORS[ik] || '#888888').replace('#', ''), 16);
+    const opacity = st.available ? 0.7 : 0.15;
+
+    let geo;
+    if (ik === 'quad') geo = new THREE.OctahedronGeometry(10);
+    else if (ik === 'pent') geo = new THREE.DodecahedronGeometry(10);
+    else if (ik === 'ring') geo = new THREE.TorusGeometry(8, 2, 8, 16);
+    else if (ik === 'ra' || ik === 'ya' || ik === 'ga') geo = new THREE.ConeGeometry(8, 12, 3);
+    else geo = new THREE.BoxGeometry(8, 8, 8);
+
+    const mat = new THREE.MeshStandardMaterial({
+      color: hex, emissive: hex, emissiveIntensity: st.available ? 0.5 : 0.05,
+      transparent: true, opacity,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(st.x, st.y, st.z + 10);
+    threeScene.add(mesh);
+    window._threeItemMeshes.push(mesh);
   }
 
   // Draw kill markers
