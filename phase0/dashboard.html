@@ -746,30 +746,59 @@ function itemKey(name) {
   return null;
 }
 
-function drawItemShape(ctx, x, y, type, alpha) {
-  ctx.globalAlpha = alpha;
+// Draw item shape. `available`: true=filled, false=outline-only (picked up).
+function drawItemShape(ctx, x, y, type, available) {
   const c = ITEM_COLORS[type] || '#888';
+  const fillAlpha = available ? 0.85 : 0;
+  const strokeAlpha = available ? 1.0 : 0.55;
+  const strokeWidth = available ? 0 : 1.5;
+
+  const path = new Path2D();
   if (type === 'quad') {
-    ctx.fillStyle = c;
-    ctx.beginPath(); ctx.moveTo(x, y-7); ctx.lineTo(x+6, y); ctx.lineTo(x, y+7); ctx.lineTo(x-6, y); ctx.closePath(); ctx.fill();
+    path.moveTo(x, y-7); path.lineTo(x+6, y); path.lineTo(x, y+7); path.lineTo(x-6, y); path.closePath();
   } else if (type === 'pent') {
-    ctx.fillStyle = c;
-    ctx.beginPath();
-    for (let i = 0; i < 5; i++) { const a=(i*72-90)*Math.PI/180; const px=x+7*Math.cos(a),py=y+7*Math.sin(a); i===0?ctx.moveTo(px,py):ctx.lineTo(px,py); }
-    ctx.closePath(); ctx.fill();
+    for (let i = 0; i < 5; i++) {
+      const a = (i*72-90)*Math.PI/180;
+      const px = x+7*Math.cos(a), py = y+7*Math.sin(a);
+      if (i === 0) path.moveTo(px, py); else path.lineTo(px, py);
+    }
+    path.closePath();
   } else if (type === 'ring') {
-    ctx.strokeStyle = c; ctx.lineWidth = 2;
+    // Always stroke-only (it's conceptually a ring already)
+    ctx.strokeStyle = c; ctx.globalAlpha = available ? 0.9 : 0.45;
+    ctx.lineWidth = available ? 2 : 1.2;
+    if (!available) ctx.setLineDash([3, 2]);
     ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+    return;
   } else if (type === 'ra' || type === 'ya' || type === 'ga') {
-    ctx.fillStyle = c;
-    ctx.beginPath(); ctx.moveTo(x, y-6); ctx.lineTo(x-5, y+4); ctx.lineTo(x+5, y+4); ctx.closePath(); ctx.fill();
+    path.moveTo(x, y-6); path.lineTo(x-5, y+4); path.lineTo(x+5, y+4); path.closePath();
   } else if (type === 'rl') {
-    ctx.fillStyle = c;
-    ctx.fillRect(x-4, y-2, 8, 4);
-    ctx.beginPath(); ctx.moveTo(x+4, y-3); ctx.lineTo(x+7, y); ctx.lineTo(x+4, y+3); ctx.closePath(); ctx.fill();
+    path.rect(x-4, y-2, 8, 4);
+    path.moveTo(x+4, y-3); path.lineTo(x+7, y); path.lineTo(x+4, y+3); path.closePath();
   } else if (type === 'lg') {
-    ctx.strokeStyle = c; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(x-2, y-5); ctx.lineTo(x+1, y-1); ctx.lineTo(x-1, y+1); ctx.lineTo(x+2, y+5); ctx.stroke();
+    ctx.strokeStyle = c; ctx.globalAlpha = available ? 0.9 : 0.45;
+    ctx.lineWidth = available ? 1.8 : 1.1;
+    if (!available) ctx.setLineDash([2, 2]);
+    ctx.beginPath();
+    ctx.moveTo(x-2, y-5); ctx.lineTo(x+1, y-1); ctx.lineTo(x-1, y+1); ctx.lineTo(x+2, y+5);
+    ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+    return;
+  }
+
+  if (available) {
+    ctx.globalAlpha = fillAlpha;
+    ctx.fillStyle = c;
+    ctx.fill(path);
+  } else {
+    // Outline only with dashed stroke
+    ctx.globalAlpha = strokeAlpha;
+    ctx.strokeStyle = c;
+    ctx.lineWidth = strokeWidth;
+    ctx.setLineDash([3, 2]);
+    ctx.stroke(path);
+    ctx.setLineDash([]);
   }
   ctx.globalAlpha = 1;
 }
@@ -822,29 +851,41 @@ function getItemStates(itemEvents, time) {
   return states;
 }
 
-// Per-type counter approach for NON-powerup items (rl, lg, armor).
-// Walks item_events and tracks available count per type. For powerups
-// (quad/pent/ring) use isPowerupOnMap() which uses the more accurate
-// powerup_events stream.
+// Counter approach for NON-powerup items. MVD item_events emit a generic
+// "armor" string that doesn't distinguish red/yellow/green tiers, so we
+// track armor as a single unified pool. Weapons (rl, lg) are per-type.
+//
+// Returns { total: {rl,lg,armor}, available: {rl,lg,armor} }
 function getItemTypeCounts(itemEvents, staticItems, time) {
+  // Map BSP tier codes to the counter key
+  const counterKey = (ik) => {
+    if (ik === 'ra' || ik === 'ya' || ik === 'ga') return 'armor';
+    return ik;
+  };
+
   const total = {};
   if (staticItems) {
     for (const s of staticItems) {
       const ik = itemKey(s.item);
       if (!ik) continue;
-      total[ik] = (total[ik] || 0) + 1;
+      const k = counterKey(ik);
+      total[k] = (total[k] || 0) + 1;
     }
   }
   const available = { ...total };
   if (itemEvents) {
     for (const e of itemEvents) {
       if (e.t > time) break;
-      const ik = itemKey(e.item);
-      if (!ik) continue;
+      // MVD emits "armor" directly — map to counter
+      let k = null;
+      if (e.item === 'rl') k = 'rl';
+      else if (e.item === 'lg') k = 'lg';
+      else if (e.item === 'armor') k = 'armor';
+      if (!k) continue;
       if (e.type === 'pickup') {
-        available[ik] = Math.max(0, (available[ik] || 0) - 1);
+        available[k] = Math.max(0, (available[k] || 0) - 1);
       } else if (e.type === 'spawn') {
-        available[ik] = Math.min(total[ik] || 0, (available[ik] || 0) + 1);
+        available[k] = Math.min(total[k] || 0, (available[k] || 0) + 1);
       }
     }
   }
@@ -1048,6 +1089,8 @@ function drawFrame() {
   const showArmor = document.getElementById('showItemsArmor')?.checked ?? true;
 
   if (currentDemo.staticItems) {
+    const typeState = getItemTypeCounts(currentDemo.itemEvents, currentDemo.staticItems, currentTime);
+    const seenByCounter = {};
     for (const item of currentDemo.staticItems) {
       const ik = itemKey(item.item);
       if (!ik) continue;
@@ -1058,11 +1101,21 @@ function drawFrame() {
       if (isWeapon && !showWeapons) continue;
       if (isArmor && !showArmor) continue;
 
-      // Powerups: hide when not on the map (per powerup_events)
+      // Powerups: hide completely when not on map (from powerup_events)
       if (isPowerup && !isPowerupOnMap(currentDemo.powerupEvents, ik, currentTime)) continue;
 
+      // Weapons/armor: dim (outline-only) when picked up.
+      // Armor uses a unified "armor" counter since MVD can't distinguish tiers.
+      let isAvailable = true;
+      if (isWeapon || isArmor) {
+        const counterKey = isArmor ? 'armor' : ik;
+        const unavailable = (typeState.total[counterKey] || 0) - (typeState.available[counterKey] || 0);
+        seenByCounter[counterKey] = (seenByCounter[counterKey] || 0) + 1;
+        isAvailable = seenByCounter[counterKey] > unavailable;
+      }
+
       const [ix, iy] = worldToCanvas(item.x, item.y);
-      drawItemShape(ctx, ix, iy, ik, 0.8);
+      drawItemShape(ctx, ix, iy, ik, isAvailable);
     }
   }
 
@@ -1623,8 +1676,10 @@ function updateThreePlayers() {
     }
   }
 
-  // Toggle visibility based on layer checkboxes and powerup on-map state
+  // Toggle visibility + available/dimmed state
   if (window._threeItemMeshes) {
+    const typeState3d = getItemTypeCounts(currentDemo.itemEvents, currentDemo.staticItems, currentTime);
+    const seenByCounter3d = {};
     for (const mesh of window._threeItemMeshes) {
       const ik = mesh.userData.itemKey;
       const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
@@ -1634,12 +1689,30 @@ function updateThreePlayers() {
 
       if (isPowerup) {
         mesh.visible = layerOn && isPowerupOnMap(currentDemo.powerupEvents, ik, currentTime);
+        if (mesh.visible) {
+          mesh.material.opacity = 0.85;
+          mesh.material.emissiveIntensity = 0.7;
+          mesh.material.wireframe = false;
+        }
       } else {
         mesh.visible = layerOn;
-      }
-      if (mesh.visible) {
-        mesh.material.opacity = 0.8;
-        mesh.material.emissiveIntensity = 0.65;
+        if (mesh.visible) {
+          // Compute availability via counter (armor unified)
+          const counterKey = isArmor ? 'armor' : ik;
+          const unavailable = (typeState3d.total[counterKey] || 0) - (typeState3d.available[counterKey] || 0);
+          seenByCounter3d[counterKey] = (seenByCounter3d[counterKey] || 0) + 1;
+          const isAvailable = seenByCounter3d[counterKey] > unavailable;
+          if (isAvailable) {
+            mesh.material.opacity = 0.85;
+            mesh.material.emissiveIntensity = 0.7;
+            mesh.material.wireframe = false;
+          } else {
+            // Dimmed: wireframe with low opacity
+            mesh.material.opacity = 0.5;
+            mesh.material.emissiveIntensity = 0.1;
+            mesh.material.wireframe = true;
+          }
+        }
       }
     }
   }
@@ -2190,6 +2263,8 @@ function valDrawFrame() {
   const valShowArmor = document.getElementById('showItemsArmor')?.checked ?? true;
 
   if (valDemo.staticItems) {
+    const valTypeState = getItemTypeCounts(valDemo.itemEvents, valDemo.staticItems, valTime);
+    const valSeenByCounter = {};
     for (const item of valDemo.staticItems) {
       const ik = itemKey(item.item);
       if (!ik) continue;
@@ -2202,8 +2277,16 @@ function valDrawFrame() {
 
       if (isPowerup && !isPowerupOnMap(valDemo.powerupEvents, ik, valTime)) continue;
 
+      let isAvailable = true;
+      if (isWeapon || isArmor) {
+        const counterKey = isArmor ? 'armor' : ik;
+        const unavailable = (valTypeState.total[counterKey] || 0) - (valTypeState.available[counterKey] || 0);
+        valSeenByCounter[counterKey] = (valSeenByCounter[counterKey] || 0) + 1;
+        isAvailable = valSeenByCounter[counterKey] > unavailable;
+      }
+
       const [ix, iy] = valWorldToCanvas(item.x, item.y);
-      drawItemShape(valCtx, ix, iy, ik, 0.8);
+      drawItemShape(valCtx, ix, iy, ik, isAvailable);
     }
   }
 
@@ -2643,6 +2726,8 @@ function valUpdateThreePlayers() {
   }
 
   if (window._valThreeItemMeshes) {
+    const valTypeState3d = getItemTypeCounts(valDemo.itemEvents, valDemo.staticItems, valTime);
+    const valSeenByCounter3d = {};
     for (const mesh of window._valThreeItemMeshes) {
       const ik = mesh.userData.itemKey;
       const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
@@ -2652,12 +2737,28 @@ function valUpdateThreePlayers() {
 
       if (isPowerup) {
         mesh.visible = layerOn && isPowerupOnMap(valDemo.powerupEvents, ik, valTime);
+        if (mesh.visible) {
+          mesh.material.opacity = 0.85;
+          mesh.material.emissiveIntensity = 0.7;
+          mesh.material.wireframe = false;
+        }
       } else {
         mesh.visible = layerOn;
-      }
-      if (mesh.visible) {
-        mesh.material.opacity = 0.8;
-        mesh.material.emissiveIntensity = 0.65;
+        if (mesh.visible) {
+          const counterKey = isArmor ? 'armor' : ik;
+          const unavailable = (valTypeState3d.total[counterKey] || 0) - (valTypeState3d.available[counterKey] || 0);
+          valSeenByCounter3d[counterKey] = (valSeenByCounter3d[counterKey] || 0) + 1;
+          const isAvailable = valSeenByCounter3d[counterKey] > unavailable;
+          if (isAvailable) {
+            mesh.material.opacity = 0.85;
+            mesh.material.emissiveIntensity = 0.7;
+            mesh.material.wireframe = false;
+          } else {
+            mesh.material.opacity = 0.5;
+            mesh.material.emissiveIntensity = 0.1;
+            mesh.material.wireframe = true;
+          }
+        }
       }
     }
   }
