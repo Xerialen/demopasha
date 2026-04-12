@@ -187,6 +187,7 @@ function transformMimerJson(raw, filename) {
     snapshots,
     kills,
     itemEvents: pt.item_events || [],
+    staticItems: pt.static_items || [],
   };
 }
 

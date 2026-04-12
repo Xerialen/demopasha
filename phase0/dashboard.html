@@ -977,24 +977,24 @@ function drawFrame() {
     }
   }
 
-  // Draw item spawn indicators
-  const itemStates = getItemStates(currentDemo.itemEvents, currentTime);
+  // Draw item spawn indicators from BSP static positions (ground truth)
   const showPowerups = document.getElementById('showItemsPowerups')?.checked ?? true;
   const showWeapons = document.getElementById('showItemsWeapons')?.checked ?? true;
   const showArmor = document.getElementById('showItemsArmor')?.checked ?? true;
 
-  for (const st of Object.values(itemStates)) {
-    const ik = itemKey(st.item);
-    if (!ik) continue;
-    const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
-    const isWeapon = ik === 'rl' || ik === 'lg';
-    const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
-    if (isPowerup && !showPowerups) continue;
-    if (isWeapon && !showWeapons) continue;
-    if (isArmor && !showArmor) continue;
-
-    const [ix, iy] = worldToCanvas(st.x, st.y);
-    drawItemShape(ctx, ix, iy, ik, st.available ? 0.7 : 0.15);
+  if (currentDemo.staticItems) {
+    for (const item of currentDemo.staticItems) {
+      const ik = itemKey(item.item);
+      if (!ik) continue;
+      const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
+      const isWeapon = ik === 'rl' || ik === 'lg';
+      const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
+      if (isPowerup && !showPowerups) continue;
+      if (isWeapon && !showWeapons) continue;
+      if (isArmor && !showArmor) continue;
+      const [ix, iy] = worldToCanvas(item.x, item.y);
+      drawItemShape(ctx, ix, iy, ik, 0.75);
+    }
   }
 
   // Draw player dots with cones, pips, and powerup glow
@@ -1065,6 +1065,12 @@ function loadDemo(idx) {
   currentDemo = data.demos[idx];
   currentMap = data.maps[currentDemo.map];
   currentTime = currentDemo.snapshots[0]?.t || 0;
+
+  // Clear cached static item meshes — the new demo may be a different map
+  if (window._threeItemMeshes && threeScene) {
+    for (const m of window._threeItemMeshes) { disposeObject3D(m); threeScene.remove(m); }
+    window._threeItemMeshes = null;
+  }
 
   // Load map-specific top-down image
   mapImg = null;
@@ -1425,16 +1431,16 @@ function updateThreePlayers() {
     });
     group.add(new THREE.Mesh(sphereGeo, sphereMat));
 
-    // View cone (alive only)
+    // View cone (alive only) — scaled up for 3D map distances
     if (pos.alive && pos.yaw !== undefined) {
-      const coneLen = 40;
+      const coneLen = 120;
       const halfAngle = 20 * Math.PI / 180;
       const coneRadius = coneLen * Math.tan(halfAngle);
       const coneGeo = new THREE.ConeGeometry(coneRadius, coneLen, 16, 1, true);
       coneGeo.rotateZ(-Math.PI / 2);
-      coneGeo.translate(coneLen / 2, 0, 0);
+      coneGeo.translate(coneLen / 2 + radius, 0, 0);  // start at sphere edge, not center
       const coneMat = new THREE.MeshBasicMaterial({
-        color, transparent: true, opacity: 0.15,
+        color, transparent: true, opacity: 0.35,
         side: THREE.DoubleSide, depthWrite: false,
       });
       const cone = new THREE.Mesh(coneGeo, coneMat);
@@ -1446,9 +1452,9 @@ function updateThreePlayers() {
     const flags = pos.flags || 0;
     if (pos.alive && (flags & 4 || flags & 8)) {
       const glowColor = (flags & 4) ? 0x00ffff : 0xff8800;
-      const ringGeo = new THREE.RingGeometry(20, 25, 32);
+      const ringGeo = new THREE.RingGeometry(20, 28, 32);
       const ringMat = new THREE.MeshBasicMaterial({
-        color: glowColor, transparent: true, opacity: 0.4,
+        color: glowColor, transparent: true, opacity: 0.6,
         side: THREE.DoubleSide, depthWrite: false,
       });
       const ring = new THREE.Mesh(ringGeo, ringMat);
@@ -1483,42 +1489,48 @@ function updateThreePlayers() {
   // Remove old item meshes (dispose GPU resources before removing)
   if (window._threeItemMeshes) {
     for (const m of window._threeItemMeshes) { disposeObject3D(m); threeScene.remove(m); }
+    window._threeItemMeshes = null;
   }
-  window._threeItemMeshes = [];
 
-  const itemStates = getItemStates(currentDemo.itemEvents, currentTime);
   const showPowerups = document.getElementById('showItemsPowerups')?.checked ?? true;
   const showWeapons = document.getElementById('showItemsWeapons')?.checked ?? true;
   const showArmor = document.getElementById('showItemsArmor')?.checked ?? true;
 
-  for (const st of Object.values(itemStates)) {
-    const ik = itemKey(st.item);
-    if (!ik) continue;
-    const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
-    const isWeapon = ik === 'rl' || ik === 'lg';
-    const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
-    if (isPowerup && !showPowerups) continue;
-    if (isWeapon && !showWeapons) continue;
-    if (isArmor && !showArmor) continue;
+  // Item meshes are STATIC — create once per demo and cache. Per-frame we only
+  // toggle visibility/opacity. `currentDemo.staticItems` comes from the BSP entity lump.
+  if (currentDemo.staticItems && !window._threeItemMeshes) {
+    window._threeItemMeshes = [];
+    for (const item of currentDemo.staticItems) {
+      const ik = itemKey(item.item);
+      if (!ik) continue;
+      const hex = parseInt((ITEM_COLORS[ik] || '#888888').replace('#', ''), 16);
+      let geo;
+      if (ik === 'quad') geo = new THREE.OctahedronGeometry(14);
+      else if (ik === 'pent') geo = new THREE.DodecahedronGeometry(14);
+      else if (ik === 'ring') geo = new THREE.TorusGeometry(10, 3, 8, 16);
+      else if (ik === 'ra' || ik === 'ya' || ik === 'ga') geo = new THREE.ConeGeometry(10, 16, 3);
+      else geo = new THREE.BoxGeometry(12, 12, 6);
+      const mat = new THREE.MeshStandardMaterial({
+        color: hex, emissive: hex, emissiveIntensity: 0.6,
+        transparent: true, opacity: 0.75,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(item.x, item.y, item.z + 12);
+      mesh.userData.itemKey = ik;
+      threeScene.add(mesh);
+      window._threeItemMeshes.push(mesh);
+    }
+  }
 
-    const hex = parseInt((ITEM_COLORS[ik] || '#888888').replace('#', ''), 16);
-    const opacity = st.available ? 0.7 : 0.15;
-
-    let geo;
-    if (ik === 'quad') geo = new THREE.OctahedronGeometry(10);
-    else if (ik === 'pent') geo = new THREE.DodecahedronGeometry(10);
-    else if (ik === 'ring') geo = new THREE.TorusGeometry(8, 2, 8, 16);
-    else if (ik === 'ra' || ik === 'ya' || ik === 'ga') geo = new THREE.ConeGeometry(8, 12, 3);
-    else geo = new THREE.BoxGeometry(8, 8, 8);
-
-    const mat = new THREE.MeshStandardMaterial({
-      color: hex, emissive: hex, emissiveIntensity: st.available ? 0.5 : 0.05,
-      transparent: true, opacity,
-    });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(st.x, st.y, st.z + 10);
-    threeScene.add(mesh);
-    window._threeItemMeshes.push(mesh);
+  // Toggle visibility based on layer checkboxes
+  if (window._threeItemMeshes) {
+    for (const mesh of window._threeItemMeshes) {
+      const ik = mesh.userData.itemKey;
+      const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
+      const isWeapon = ik === 'rl' || ik === 'lg';
+      const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
+      mesh.visible = (isPowerup && showPowerups) || (isWeapon && showWeapons) || (isArmor && showArmor);
+    }
   }
 
   // Draw kill markers
@@ -1815,6 +1827,12 @@ function valEnterPlayback(result) {
   valFteLoaded = false;
   valPov = '';
 
+  // Clear cached static item meshes — new demo, possibly a different map
+  if (window._valThreeItemMeshes && valThreeScene) {
+    for (const m of window._valThreeItemMeshes) { disposeObject3D(m); valThreeScene.remove(m); }
+    window._valThreeItemMeshes = null;
+  }
+
   // Info bar
   const teams = valDemo.teams.map(t => t.name).join(' vs ');
   document.getElementById('valPlaybackInfo').textContent =
@@ -2055,24 +2073,24 @@ function valDrawFrame() {
     }
   }
 
-  // Draw item spawn indicators
-  const valItemStates = getItemStates(valDemo.itemEvents, valTime);
+  // Draw item spawn indicators from BSP static positions
   const valShowPowerups = document.getElementById('showItemsPowerups')?.checked ?? true;
   const valShowWeapons = document.getElementById('showItemsWeapons')?.checked ?? true;
   const valShowArmor = document.getElementById('showItemsArmor')?.checked ?? true;
 
-  for (const st of Object.values(valItemStates)) {
-    const ik = itemKey(st.item);
-    if (!ik) continue;
-    const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
-    const isWeapon = ik === 'rl' || ik === 'lg';
-    const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
-    if (isPowerup && !valShowPowerups) continue;
-    if (isWeapon && !valShowWeapons) continue;
-    if (isArmor && !valShowArmor) continue;
-
-    const [ix, iy] = valWorldToCanvas(st.x, st.y);
-    drawItemShape(valCtx, ix, iy, ik, st.available ? 0.7 : 0.15);
+  if (valDemo.staticItems) {
+    for (const item of valDemo.staticItems) {
+      const ik = itemKey(item.item);
+      if (!ik) continue;
+      const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
+      const isWeapon = ik === 'rl' || ik === 'lg';
+      const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
+      if (isPowerup && !valShowPowerups) continue;
+      if (isWeapon && !valShowWeapons) continue;
+      if (isArmor && !valShowArmor) continue;
+      const [ix, iy] = valWorldToCanvas(item.x, item.y);
+      drawItemShape(valCtx, ix, iy, ik, 0.75);
+    }
   }
 
   // Player dots
@@ -2455,45 +2473,43 @@ function valUpdateThreePlayers() {
     valPlayerSpheres[player.name] = { mesh: group, label: sprite };
   }
 
-  // Remove old item meshes (dispose GPU resources before removing)
-  if (window._valThreeItemMeshes) {
-    for (const m of window._valThreeItemMeshes) { disposeObject3D(m); valThreeScene.remove(m); }
-  }
-  window._valThreeItemMeshes = [];
-
-  const valItemStates3d = getItemStates(valDemo.itemEvents, valTime);
   const valShowPowerups3d = document.getElementById('showItemsPowerups')?.checked ?? true;
   const valShowWeapons3d = document.getElementById('showItemsWeapons')?.checked ?? true;
   const valShowArmor3d = document.getElementById('showItemsArmor')?.checked ?? true;
 
-  for (const st of Object.values(valItemStates3d)) {
-    const ik = itemKey(st.item);
-    if (!ik) continue;
-    const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
-    const isWeapon = ik === 'rl' || ik === 'lg';
-    const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
-    if (isPowerup && !valShowPowerups3d) continue;
-    if (isWeapon && !valShowWeapons3d) continue;
-    if (isArmor && !valShowArmor3d) continue;
+  // Static item meshes — create once per demo, then just toggle visibility
+  if (valDemo.staticItems && !window._valThreeItemMeshes) {
+    window._valThreeItemMeshes = [];
+    for (const item of valDemo.staticItems) {
+      const ik = itemKey(item.item);
+      if (!ik) continue;
+      const hex = parseInt((ITEM_COLORS[ik] || '#888888').replace('#', ''), 16);
+      let geo;
+      if (ik === 'quad') geo = new THREE.OctahedronGeometry(14);
+      else if (ik === 'pent') geo = new THREE.DodecahedronGeometry(14);
+      else if (ik === 'ring') geo = new THREE.TorusGeometry(10, 3, 8, 16);
+      else if (ik === 'ra' || ik === 'ya' || ik === 'ga') geo = new THREE.ConeGeometry(10, 16, 3);
+      else geo = new THREE.BoxGeometry(12, 12, 6);
+      const mat = new THREE.MeshStandardMaterial({
+        color: hex, emissive: hex, emissiveIntensity: 0.6,
+        transparent: true, opacity: 0.75,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(item.x, item.y, item.z + 12);
+      mesh.userData.itemKey = ik;
+      valThreeScene.add(mesh);
+      window._valThreeItemMeshes.push(mesh);
+    }
+  }
 
-    const hex = parseInt((ITEM_COLORS[ik] || '#888888').replace('#', ''), 16);
-    const opacity = st.available ? 0.7 : 0.15;
-
-    let geo;
-    if (ik === 'quad') geo = new THREE.OctahedronGeometry(10);
-    else if (ik === 'pent') geo = new THREE.DodecahedronGeometry(10);
-    else if (ik === 'ring') geo = new THREE.TorusGeometry(8, 2, 8, 16);
-    else if (ik === 'ra' || ik === 'ya' || ik === 'ga') geo = new THREE.ConeGeometry(8, 12, 3);
-    else geo = new THREE.BoxGeometry(8, 8, 8);
-
-    const mat = new THREE.MeshStandardMaterial({
-      color: hex, emissive: hex, emissiveIntensity: st.available ? 0.5 : 0.05,
-      transparent: true, opacity,
-    });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(st.x, st.y, st.z + 10);
-    valThreeScene.add(mesh);
-    window._valThreeItemMeshes.push(mesh);
+  if (window._valThreeItemMeshes) {
+    for (const mesh of window._valThreeItemMeshes) {
+      const ik = mesh.userData.itemKey;
+      const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
+      const isWeapon = ik === 'rl' || ik === 'lg';
+      const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
+      mesh.visible = (isPowerup && valShowPowerups3d) || (isWeapon && valShowWeapons3d) || (isArmor && valShowArmor3d);
+    }
   }
 
   // Kill markers
