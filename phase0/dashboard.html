@@ -738,6 +738,10 @@ function itemKey(name) {
   if (name === 'ring') return 'ring';
   if (name === 'rl') return 'rl';
   if (name === 'lg') return 'lg';
+  if (name === 'ra') return 'ra';
+  if (name === 'ya') return 'ya';
+  if (name === 'ga') return 'ga';
+  // MVD item_events emit generic "armor" — map to ya as fallback
   if (name.includes('armor')) return 'ya';
   return null;
 }
@@ -1044,8 +1048,6 @@ function drawFrame() {
   const showArmor = document.getElementById('showItemsArmor')?.checked ?? true;
 
   if (currentDemo.staticItems) {
-    const typeState = getItemTypeCounts(currentDemo.itemEvents, currentDemo.staticItems, currentTime);
-    const seenByType = {};
     for (const item of currentDemo.staticItems) {
       const ik = itemKey(item.item);
       if (!ik) continue;
@@ -1056,21 +1058,11 @@ function drawFrame() {
       if (isWeapon && !showWeapons) continue;
       if (isArmor && !showArmor) continue;
 
-      // Powerups: show only when actually on the map (from powerup_events)
-      if (isPowerup) {
-        if (!isPowerupOnMap(currentDemo.powerupEvents, ik, currentTime)) continue;
-        const [ix, iy] = worldToCanvas(item.x, item.y);
-        drawItemShape(ctx, ix, iy, ik, 0.85);
-        continue;
-      }
-
-      // Weapons and armor: dim when count says some are picked up
-      const unavailable = (typeState.total[ik] || 0) - (typeState.available[ik] || 0);
-      seenByType[ik] = (seenByType[ik] || 0) + 1;
-      const isAvailable = seenByType[ik] > unavailable;
+      // Powerups: hide when not on the map (per powerup_events)
+      if (isPowerup && !isPowerupOnMap(currentDemo.powerupEvents, ik, currentTime)) continue;
 
       const [ix, iy] = worldToCanvas(item.x, item.y);
-      drawItemShape(ctx, ix, iy, ik, isAvailable ? 0.75 : 0.18);
+      drawItemShape(ctx, ix, iy, ik, 0.8);
     }
   }
 
@@ -1631,10 +1623,8 @@ function updateThreePlayers() {
     }
   }
 
-  // Toggle visibility + opacity based on layer checkboxes and pickup state
+  // Toggle visibility based on layer checkboxes and powerup on-map state
   if (window._threeItemMeshes) {
-    const typeState3d = getItemTypeCounts(currentDemo.itemEvents, currentDemo.staticItems, currentTime);
-    const seenByType3d = {};
     for (const mesh of window._threeItemMeshes) {
       const ik = mesh.userData.itemKey;
       const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
@@ -1643,21 +1633,13 @@ function updateThreePlayers() {
       const layerOn = (isPowerup && showPowerups) || (isWeapon && showWeapons) || (isArmor && showArmor);
 
       if (isPowerup) {
-        // Powerups: only visible while on the map per powerup_events
         mesh.visible = layerOn && isPowerupOnMap(currentDemo.powerupEvents, ik, currentTime);
-        if (mesh.visible) {
-          mesh.material.opacity = 0.85;
-          mesh.material.emissiveIntensity = 0.7;
-        }
       } else {
         mesh.visible = layerOn;
-        if (mesh.visible) {
-          const unavailable = (typeState3d.total[ik] || 0) - (typeState3d.available[ik] || 0);
-          seenByType3d[ik] = (seenByType3d[ik] || 0) + 1;
-          const isAvailable = seenByType3d[ik] > unavailable;
-          mesh.material.opacity = isAvailable ? 0.75 : 0.15;
-          mesh.material.emissiveIntensity = isAvailable ? 0.6 : 0.05;
-        }
+      }
+      if (mesh.visible) {
+        mesh.material.opacity = 0.8;
+        mesh.material.emissiveIntensity = 0.65;
       }
     }
   }
@@ -2208,8 +2190,6 @@ function valDrawFrame() {
   const valShowArmor = document.getElementById('showItemsArmor')?.checked ?? true;
 
   if (valDemo.staticItems) {
-    const valTypeState = getItemTypeCounts(valDemo.itemEvents, valDemo.staticItems, valTime);
-    const valSeenByType = {};
     for (const item of valDemo.staticItems) {
       const ik = itemKey(item.item);
       if (!ik) continue;
@@ -2220,19 +2200,10 @@ function valDrawFrame() {
       if (isWeapon && !valShowWeapons) continue;
       if (isArmor && !valShowArmor) continue;
 
-      if (isPowerup) {
-        if (!isPowerupOnMap(valDemo.powerupEvents, ik, valTime)) continue;
-        const [ix, iy] = valWorldToCanvas(item.x, item.y);
-        drawItemShape(valCtx, ix, iy, ik, 0.85);
-        continue;
-      }
-
-      const unavailable = (valTypeState.total[ik] || 0) - (valTypeState.available[ik] || 0);
-      valSeenByType[ik] = (valSeenByType[ik] || 0) + 1;
-      const isAvailable = valSeenByType[ik] > unavailable;
+      if (isPowerup && !isPowerupOnMap(valDemo.powerupEvents, ik, valTime)) continue;
 
       const [ix, iy] = valWorldToCanvas(item.x, item.y);
-      drawItemShape(valCtx, ix, iy, ik, isAvailable ? 0.75 : 0.18);
+      drawItemShape(valCtx, ix, iy, ik, 0.8);
     }
   }
 
@@ -2672,8 +2643,6 @@ function valUpdateThreePlayers() {
   }
 
   if (window._valThreeItemMeshes) {
-    const valTypeState3d = getItemTypeCounts(valDemo.itemEvents, valDemo.staticItems, valTime);
-    const valSeenByType3d = {};
     for (const mesh of window._valThreeItemMeshes) {
       const ik = mesh.userData.itemKey;
       const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
@@ -2683,19 +2652,12 @@ function valUpdateThreePlayers() {
 
       if (isPowerup) {
         mesh.visible = layerOn && isPowerupOnMap(valDemo.powerupEvents, ik, valTime);
-        if (mesh.visible) {
-          mesh.material.opacity = 0.85;
-          mesh.material.emissiveIntensity = 0.7;
-        }
       } else {
         mesh.visible = layerOn;
-        if (mesh.visible) {
-          const unavailable = (valTypeState3d.total[ik] || 0) - (valTypeState3d.available[ik] || 0);
-          valSeenByType3d[ik] = (valSeenByType3d[ik] || 0) + 1;
-          const isAvailable = valSeenByType3d[ik] > unavailable;
-          mesh.material.opacity = isAvailable ? 0.75 : 0.15;
-          mesh.material.emissiveIntensity = isAvailable ? 0.6 : 0.05;
-        }
+      }
+      if (mesh.visible) {
+        mesh.material.opacity = 0.8;
+        mesh.material.emissiveIntensity = 0.65;
       }
     }
   }
