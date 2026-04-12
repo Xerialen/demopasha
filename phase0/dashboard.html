@@ -775,8 +775,8 @@ function drawViewCone(ctx, x, y, yawDeg, length, spreadDeg, color) {
   const half = spreadDeg * Math.PI / 180 / 2;
   ctx.fillStyle = color;
   ctx.beginPath(); ctx.moveTo(x, y);
-  ctx.lineTo(x + Math.cos(rad - half) * length, y - Math.sin(rad - half) * length);
-  ctx.lineTo(x + Math.cos(rad + half) * length, y - Math.sin(rad + half) * length);
+  ctx.lineTo(x + Math.cos(rad - half) * length, y + Math.sin(rad - half) * length);
+  ctx.lineTo(x + Math.cos(rad + half) * length, y + Math.sin(rad + half) * length);
   ctx.closePath(); ctx.fill();
 }
 
@@ -1227,7 +1227,10 @@ async function init() {
 
   // Display toggles
   ['showTrail', 'showNames', 'showDeadPlayers', 'showKillMarkers', 'showItemsPowerups', 'showItemsWeapons', 'showItemsArmor'].forEach(id => {
-    document.getElementById(id).addEventListener('change', redraw);
+    document.getElementById(id).addEventListener('change', () => {
+      redraw();
+      if (typeof valRedraw === 'function') valRedraw();
+    });
   });
   document.getElementById('trailLength').addEventListener('input', redraw);
 
@@ -1371,6 +1374,17 @@ async function loadThreeMap() {
   three_loaded_map = mapName;
 }
 
+function disposeObject3D(obj) {
+  if (obj.geometry) obj.geometry.dispose();
+  if (obj.material) {
+    if (obj.material.map) obj.material.map.dispose();
+    obj.material.dispose();
+  }
+  if (obj.children) {
+    for (const child of [...obj.children]) disposeObject3D(child);
+  }
+}
+
 function updateThreePlayers() {
   if (!threeScene || !currentDemo) return;
 
@@ -1379,8 +1393,10 @@ function updateThreePlayers() {
 
   const showDead = document.getElementById('showDeadPlayers').checked;
 
-  // Remove old spheres
+  // Remove old spheres (dispose GPU resources before removing)
   for (const name of Object.keys(playerSpheres)) {
+    disposeObject3D(playerSpheres[name].mesh);
+    if (playerSpheres[name].label) disposeObject3D(playerSpheres[name].label);
     threeScene.remove(playerSpheres[name].mesh);
     if (playerSpheres[name].label) threeScene.remove(playerSpheres[name].label);
   }
@@ -1464,9 +1480,9 @@ function updateThreePlayers() {
     playerSpheres[player.name] = { mesh: group, label: sprite };
   }
 
-  // Remove old item meshes
+  // Remove old item meshes (dispose GPU resources before removing)
   if (window._threeItemMeshes) {
-    for (const m of window._threeItemMeshes) threeScene.remove(m);
+    for (const m of window._threeItemMeshes) { disposeObject3D(m); threeScene.remove(m); }
   }
   window._threeItemMeshes = [];
 
@@ -2341,6 +2357,8 @@ function valUpdateThreePlayers() {
   if (!snap) return;
 
   for (const name of Object.keys(valPlayerSpheres)) {
+    disposeObject3D(valPlayerSpheres[name].mesh);
+    if (valPlayerSpheres[name].label) disposeObject3D(valPlayerSpheres[name].label);
     valThreeScene.remove(valPlayerSpheres[name].mesh);
     if (valPlayerSpheres[name].label) valThreeScene.remove(valPlayerSpheres[name].label);
   }
@@ -2437,9 +2455,9 @@ function valUpdateThreePlayers() {
     valPlayerSpheres[player.name] = { mesh: group, label: sprite };
   }
 
-  // Remove old item meshes
+  // Remove old item meshes (dispose GPU resources before removing)
   if (window._valThreeItemMeshes) {
-    for (const m of window._valThreeItemMeshes) valThreeScene.remove(m);
+    for (const m of window._valThreeItemMeshes) { disposeObject3D(m); valThreeScene.remove(m); }
   }
   window._valThreeItemMeshes = [];
 
