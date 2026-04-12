@@ -747,56 +747,65 @@ function itemKey(name) {
 }
 
 // Draw item shape. `available`: true=filled, false=outline-only (picked up).
+// Sizes tuned to be clearly visible at default map zoom (~12-14px radius).
 function drawItemShape(ctx, x, y, type, available) {
   const c = ITEM_COLORS[type] || '#888';
-  const fillAlpha = available ? 0.85 : 0;
-  const strokeAlpha = available ? 1.0 : 0.55;
-  const strokeWidth = available ? 0 : 1.5;
 
   const path = new Path2D();
   if (type === 'quad') {
-    path.moveTo(x, y-7); path.lineTo(x+6, y); path.lineTo(x, y+7); path.lineTo(x-6, y); path.closePath();
+    // Diamond, ~13px half-height
+    path.moveTo(x, y-13); path.lineTo(x+11, y); path.lineTo(x, y+13); path.lineTo(x-11, y); path.closePath();
   } else if (type === 'pent') {
+    // Pentagon, ~13px radius
     for (let i = 0; i < 5; i++) {
       const a = (i*72-90)*Math.PI/180;
-      const px = x+7*Math.cos(a), py = y+7*Math.sin(a);
+      const px = x+13*Math.cos(a), py = y+13*Math.sin(a);
       if (i === 0) path.moveTo(px, py); else path.lineTo(px, py);
     }
     path.closePath();
   } else if (type === 'ring') {
-    // Always stroke-only (it's conceptually a ring already)
-    ctx.strokeStyle = c; ctx.globalAlpha = available ? 0.9 : 0.45;
-    ctx.lineWidth = available ? 2 : 1.2;
-    if (!available) ctx.setLineDash([3, 2]);
-    ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.stroke();
+    // Ring: always a thick stroked circle
+    ctx.strokeStyle = c; ctx.globalAlpha = available ? 0.95 : 0.55;
+    ctx.lineWidth = available ? 3.5 : 2.5;
+    if (!available) ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.arc(x, y, 11, 0, Math.PI*2); ctx.stroke();
     ctx.setLineDash([]); ctx.globalAlpha = 1;
     return;
   } else if (type === 'ra' || type === 'ya' || type === 'ga') {
-    path.moveTo(x, y-6); path.lineTo(x-5, y+4); path.lineTo(x+5, y+4); path.closePath();
+    // Triangle, ~12px tall, 11px wide
+    path.moveTo(x, y-12); path.lineTo(x-11, y+8); path.lineTo(x+11, y+8); path.closePath();
   } else if (type === 'rl') {
-    path.rect(x-4, y-2, 8, 4);
-    path.moveTo(x+4, y-3); path.lineTo(x+7, y); path.lineTo(x+4, y+3); path.closePath();
+    // Rocket: ~18px wide (tube + cone tip)
+    path.rect(x-8, y-4, 14, 8);
+    path.moveTo(x+6, y-6); path.lineTo(x+12, y); path.lineTo(x+6, y+6); path.closePath();
   } else if (type === 'lg') {
-    ctx.strokeStyle = c; ctx.globalAlpha = available ? 0.9 : 0.45;
-    ctx.lineWidth = available ? 1.8 : 1.1;
-    if (!available) ctx.setLineDash([2, 2]);
+    // Lightning bolt — ~18px tall zigzag, drawn as a thick stroke
+    ctx.strokeStyle = c; ctx.globalAlpha = available ? 0.95 : 0.55;
+    ctx.lineWidth = available ? 3 : 2;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (!available) ctx.setLineDash([3, 3]);
     ctx.beginPath();
-    ctx.moveTo(x-2, y-5); ctx.lineTo(x+1, y-1); ctx.lineTo(x-1, y+1); ctx.lineTo(x+2, y+5);
+    ctx.moveTo(x-4, y-10); ctx.lineTo(x+3, y-2); ctx.lineTo(x-3, y+2); ctx.lineTo(x+4, y+10);
     ctx.stroke();
-    ctx.setLineDash([]); ctx.globalAlpha = 1;
+    ctx.setLineDash([]); ctx.globalAlpha = 1; ctx.lineCap = 'butt'; ctx.lineJoin = 'miter';
     return;
   }
 
   if (available) {
-    ctx.globalAlpha = fillAlpha;
+    ctx.globalAlpha = 0.9;
     ctx.fillStyle = c;
     ctx.fill(path);
+    // Outline for extra contrast
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = c;
+    ctx.lineWidth = 1;
+    ctx.stroke(path);
   } else {
     // Outline only with dashed stroke
-    ctx.globalAlpha = strokeAlpha;
+    ctx.globalAlpha = 0.6;
     ctx.strokeStyle = c;
-    ctx.lineWidth = strokeWidth;
-    ctx.setLineDash([3, 2]);
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 3]);
     ctx.stroke(path);
     ctx.setLineDash([]);
   }
@@ -1659,17 +1668,17 @@ function updateThreePlayers() {
       if (!ik) continue;
       const hex = parseInt((ITEM_COLORS[ik] || '#888888').replace('#', ''), 16);
       let geo;
-      if (ik === 'quad') geo = new THREE.OctahedronGeometry(14);
-      else if (ik === 'pent') geo = new THREE.DodecahedronGeometry(14);
-      else if (ik === 'ring') geo = new THREE.TorusGeometry(10, 3, 8, 16);
-      else if (ik === 'ra' || ik === 'ya' || ik === 'ga') geo = new THREE.ConeGeometry(10, 16, 3);
-      else geo = new THREE.BoxGeometry(12, 12, 6);
+      if (ik === 'quad') geo = new THREE.OctahedronGeometry(28);
+      else if (ik === 'pent') geo = new THREE.DodecahedronGeometry(26);
+      else if (ik === 'ring') geo = new THREE.TorusGeometry(22, 5, 10, 24);
+      else if (ik === 'ra' || ik === 'ya' || ik === 'ga') geo = new THREE.ConeGeometry(22, 32, 3);
+      else geo = new THREE.BoxGeometry(26, 26, 12);
       const mat = new THREE.MeshStandardMaterial({
         color: hex, emissive: hex, emissiveIntensity: 0.6,
         transparent: true, opacity: 0.75,
       });
       const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(item.x, item.y, item.z + 12);
+      mesh.position.set(item.x, item.y, item.z + 24);
       mesh.userData.itemKey = ik;
       threeScene.add(mesh);
       window._threeItemMeshes.push(mesh);
@@ -2708,17 +2717,17 @@ function valUpdateThreePlayers() {
       if (!ik) continue;
       const hex = parseInt((ITEM_COLORS[ik] || '#888888').replace('#', ''), 16);
       let geo;
-      if (ik === 'quad') geo = new THREE.OctahedronGeometry(14);
-      else if (ik === 'pent') geo = new THREE.DodecahedronGeometry(14);
-      else if (ik === 'ring') geo = new THREE.TorusGeometry(10, 3, 8, 16);
-      else if (ik === 'ra' || ik === 'ya' || ik === 'ga') geo = new THREE.ConeGeometry(10, 16, 3);
-      else geo = new THREE.BoxGeometry(12, 12, 6);
+      if (ik === 'quad') geo = new THREE.OctahedronGeometry(28);
+      else if (ik === 'pent') geo = new THREE.DodecahedronGeometry(26);
+      else if (ik === 'ring') geo = new THREE.TorusGeometry(22, 5, 10, 24);
+      else if (ik === 'ra' || ik === 'ya' || ik === 'ga') geo = new THREE.ConeGeometry(22, 32, 3);
+      else geo = new THREE.BoxGeometry(26, 26, 12);
       const mat = new THREE.MeshStandardMaterial({
         color: hex, emissive: hex, emissiveIntensity: 0.6,
         transparent: true, opacity: 0.75,
       });
       const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(item.x, item.y, item.z + 12);
+      mesh.position.set(item.x, item.y, item.z + 24);
       mesh.userData.itemKey = ik;
       valThreeScene.add(mesh);
       window._valThreeItemMeshes.push(mesh);
