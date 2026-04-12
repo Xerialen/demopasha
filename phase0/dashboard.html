@@ -782,10 +782,16 @@ function drawViewCone(ctx, x, y, yawDeg, length, spreadDeg, color) {
 
 function drawPowerupGlow(ctx, x, y, type) {
   const c = type === 'quad' ? '#00ffff' : '#ff8800';
-  ctx.strokeStyle = c; ctx.globalAlpha = 0.4; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI*2); ctx.stroke();
-  ctx.globalAlpha = 0.15; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(x, y, 13, 0, Math.PI*2); ctx.stroke();
+  // Soft filled glow
+  const grad = ctx.createRadialGradient(x, y, 4, x, y, 18);
+  grad.addColorStop(0, c + '66');  // 40% alpha at center
+  grad.addColorStop(0.5, c + '33');
+  grad.addColorStop(1, c + '00');
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI*2); ctx.fill();
+  // Bright outline ring
+  ctx.strokeStyle = c; ctx.globalAlpha = 0.9; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI*2); ctx.stroke();
   ctx.globalAlpha = 1;
 }
 
@@ -810,6 +816,40 @@ function getItemStates(itemEvents, time) {
     }
   }
   return states;
+}
+
+// Per-type counter approach: track how many of each item type are currently
+// on the map, given a stream of item_events. The item_events positions are
+// unreliable, so we match by type only. This works cleanly for singleton
+// items (quad/pent/lg/ring) and gives a rough availability count for
+// duplicates (rl/ra).
+function getItemTypeCounts(itemEvents, staticItems, time) {
+  // Initial count per item type from BSP static_items
+  const total = {};
+  if (staticItems) {
+    for (const s of staticItems) {
+      const ik = itemKey(s.item);
+      if (!ik) continue;
+      total[ik] = (total[ik] || 0) + 1;
+    }
+  }
+  // Walk events, adjusting available count per type
+  const available = { ...total };
+  if (itemEvents) {
+    for (const e of itemEvents) {
+      if (e.t > time) break;
+      const ik = itemKey(e.item);
+      if (!ik) continue;
+      if (e.type === 'pickup') {
+        // An entity of this type was picked up → one fewer available
+        available[ik] = Math.max(0, (available[ik] || 0) - 1);
+      } else if (e.type === 'spawn') {
+        // Respawn — cap at total to avoid drift from out-of-order events
+        available[ik] = Math.min(total[ik] || 0, (available[ik] || 0) + 1);
+      }
+    }
+  }
+  return { total, available };
 }
 
 let data = null;
@@ -983,6 +1023,8 @@ function drawFrame() {
   const showArmor = document.getElementById('showItemsArmor')?.checked ?? true;
 
   if (currentDemo.staticItems) {
+    const typeState = getItemTypeCounts(currentDemo.itemEvents, currentDemo.staticItems, currentTime);
+    const seenByType = {};
     for (const item of currentDemo.staticItems) {
       const ik = itemKey(item.item);
       if (!ik) continue;
@@ -992,8 +1034,14 @@ function drawFrame() {
       if (isPowerup && !showPowerups) continue;
       if (isWeapon && !showWeapons) continue;
       if (isArmor && !showArmor) continue;
+
+      // Availability: dim the first (total - available) items of each type
+      const unavailable = (typeState.total[ik] || 0) - (typeState.available[ik] || 0);
+      seenByType[ik] = (seenByType[ik] || 0) + 1;
+      const isAvailable = seenByType[ik] > unavailable;
+
       const [ix, iy] = worldToCanvas(item.x, item.y);
-      drawItemShape(ctx, ix, iy, ik, 0.75);
+      drawItemShape(ctx, ix, iy, ik, isAvailable ? 0.75 : 0.18);
     }
   }
 
@@ -1040,7 +1088,16 @@ function drawFrame() {
     if (showNames) {
       ctx.fillStyle = pos.alive ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)';
       ctx.font = '10px Consolas, Menlo, monospace';
+      const nameW = ctx.measureText(player.name).width;
       ctx.fillText(player.name, cx + 8, cy - 4);
+      if (pos.alive && (pos.flags & 4)) {
+        ctx.fillStyle = '#00ffff';
+        ctx.fillText(' +Q', cx + 8 + nameW, cy - 4);
+      }
+      if (pos.alive && (pos.flags & 8)) {
+        ctx.fillStyle = '#ff8800';
+        ctx.fillText(' +P', cx + 8 + nameW, cy - 4);
+      }
       if (pos.alive) {
         ctx.fillStyle = 'rgba(255,255,255,0.4)';
         ctx.fillText(`${pos.health}/${pos.armor}`, cx + 8, cy + 7);
@@ -1448,31 +1505,54 @@ function updateThreePlayers() {
       group.add(cone);
     }
 
-    // Powerup glow
+    // Powerup glow — bigger ring + emissive halo sphere + point light
     const flags = pos.flags || 0;
-    if (pos.alive && (flags & 4 || flags & 8)) {
-      const glowColor = (flags & 4) ? 0x00ffff : 0xff8800;
-      const ringGeo = new THREE.RingGeometry(20, 28, 32);
+    const hasQuad = pos.alive && (flags & 4);
+    const hasPent = pos.alive && (flags & 8);
+    if (hasQuad || hasPent) {
+      const glowColor = hasQuad ? 0x00ffff : 0xff8800;
+
+      // Large transparent halo sphere around player
+      const haloGeo = new THREE.SphereGeometry(28, 16, 12);
+      const haloMat = new THREE.MeshBasicMaterial({
+        color: glowColor, transparent: true, opacity: 0.25,
+        side: THREE.BackSide, depthWrite: false,
+      });
+      group.add(new THREE.Mesh(haloGeo, haloMat));
+
+      // Ground ring for map-view readability
+      const ringGeo = new THREE.RingGeometry(30, 45, 32);
       const ringMat = new THREE.MeshBasicMaterial({
-        color: glowColor, transparent: true, opacity: 0.6,
+        color: glowColor, transparent: true, opacity: 0.7,
         side: THREE.DoubleSide, depthWrite: false,
       });
       const ring = new THREE.Mesh(ringGeo, ringMat);
       ring.rotation.x = Math.PI / 2;
       ring.position.z = -22;
       group.add(ring);
-      group.add(new THREE.PointLight(glowColor, 0.8, 80));
+
+      // Bright point light
+      group.add(new THREE.PointLight(glowColor, 2.0, 200));
+
+      // Make the player sphere itself emit powerup color
+      sphereMat.emissive = new THREE.Color(glowColor);
+      sphereMat.emissiveIntensity = 0.7;
     }
 
     threeScene.add(group);
 
-    // Name label sprite
+    // Name label sprite with powerup suffix
     const canvas2 = document.createElement('canvas');
     canvas2.width = 256; canvas2.height = 64;
     const c2 = canvas2.getContext('2d');
     c2.font = 'bold 28px Consolas, monospace';
     c2.fillStyle = pos.alive ? '#ffffff' : '#666666';
-    c2.fillText(player.name, 4, 30);
+    let labelText = player.name;
+    if (hasQuad) labelText += ' +Q';
+    if (hasPent) labelText += ' +P';
+    c2.fillText(labelText, 4, 30);
+    if (hasQuad) { c2.fillStyle = '#00ffff'; c2.fillText(' '.repeat(player.name.length) + ' +Q', 4, 30); }
+    if (hasPent) { c2.fillStyle = '#ff8800'; c2.fillText(' '.repeat(player.name.length) + ' +P', 4, 30); }
     c2.font = '20px Consolas, monospace';
     c2.fillStyle = '#aaaaaa';
     c2.fillText(`${pos.health}/${pos.armor}`, 4, 54);
@@ -1522,14 +1602,23 @@ function updateThreePlayers() {
     }
   }
 
-  // Toggle visibility based on layer checkboxes
+  // Toggle visibility + opacity based on layer checkboxes and pickup state
   if (window._threeItemMeshes) {
+    const typeState3d = getItemTypeCounts(currentDemo.itemEvents, currentDemo.staticItems, currentTime);
+    const seenByType3d = {};
     for (const mesh of window._threeItemMeshes) {
       const ik = mesh.userData.itemKey;
       const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
       const isWeapon = ik === 'rl' || ik === 'lg';
       const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
       mesh.visible = (isPowerup && showPowerups) || (isWeapon && showWeapons) || (isArmor && showArmor);
+      if (mesh.visible) {
+        const unavailable = (typeState3d.total[ik] || 0) - (typeState3d.available[ik] || 0);
+        seenByType3d[ik] = (seenByType3d[ik] || 0) + 1;
+        const isAvailable = seenByType3d[ik] > unavailable;
+        mesh.material.opacity = isAvailable ? 0.75 : 0.15;
+        mesh.material.emissiveIntensity = isAvailable ? 0.6 : 0.05;
+      }
     }
   }
 
@@ -2079,6 +2168,8 @@ function valDrawFrame() {
   const valShowArmor = document.getElementById('showItemsArmor')?.checked ?? true;
 
   if (valDemo.staticItems) {
+    const valTypeState = getItemTypeCounts(valDemo.itemEvents, valDemo.staticItems, valTime);
+    const valSeenByType = {};
     for (const item of valDemo.staticItems) {
       const ik = itemKey(item.item);
       if (!ik) continue;
@@ -2088,8 +2179,13 @@ function valDrawFrame() {
       if (isPowerup && !valShowPowerups) continue;
       if (isWeapon && !valShowWeapons) continue;
       if (isArmor && !valShowArmor) continue;
+
+      const unavailable = (valTypeState.total[ik] || 0) - (valTypeState.available[ik] || 0);
+      valSeenByType[ik] = (valSeenByType[ik] || 0) + 1;
+      const isAvailable = valSeenByType[ik] > unavailable;
+
       const [ix, iy] = valWorldToCanvas(item.x, item.y);
-      drawItemShape(valCtx, ix, iy, ik, 0.75);
+      drawItemShape(valCtx, ix, iy, ik, isAvailable ? 0.75 : 0.18);
     }
   }
 
@@ -2145,7 +2241,16 @@ function valDrawFrame() {
     const labelStyle = isTracked ? '#ff6' : (pos.alive ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)');
     valCtx.fillStyle = labelStyle;
     valCtx.font = isTracked ? 'bold 11px Consolas, Menlo, monospace' : '10px Consolas, Menlo, monospace';
+    const nameW = valCtx.measureText(player.name).width;
     valCtx.fillText(player.name, cx + 8, cy - 4);
+    if (pos.alive && (pos.flags & 4)) {
+      valCtx.fillStyle = '#00ffff';
+      valCtx.fillText(' +Q', cx + 8 + nameW, cy - 4);
+    }
+    if (pos.alive && (pos.flags & 8)) {
+      valCtx.fillStyle = '#ff8800';
+      valCtx.fillText(' +P', cx + 8 + nameW, cy - 4);
+    }
     if (pos.alive) {
       valCtx.fillStyle = 'rgba(255,255,255,0.4)';
       valCtx.fillText(`${pos.health}/${pos.armor}`, cx + 8, cy + 7);
@@ -2424,41 +2529,58 @@ function valUpdateThreePlayers() {
       group.add(cone);
     }
 
-    // Powerup glow
+    // Powerup glow — bigger ring + halo sphere + bright light + emissive sphere
     const flags = pos.flags || 0;
-    if (pos.alive && (flags & 4 || flags & 8)) {
-      const glowColor = (flags & 4) ? 0x00ffff : 0xff8800;
-      const ringGeo = new THREE.RingGeometry(20, 25, 32);
+    const hasQuad = pos.alive && (flags & 4);
+    const hasPent = pos.alive && (flags & 8);
+    if (hasQuad || hasPent) {
+      const glowColor = hasQuad ? 0x00ffff : 0xff8800;
+
+      const haloGeo = new THREE.SphereGeometry(28, 16, 12);
+      const haloMat = new THREE.MeshBasicMaterial({
+        color: glowColor, transparent: true, opacity: 0.25,
+        side: THREE.BackSide, depthWrite: false,
+      });
+      group.add(new THREE.Mesh(haloGeo, haloMat));
+
+      const ringGeo = new THREE.RingGeometry(30, 45, 32);
       const ringMat = new THREE.MeshBasicMaterial({
-        color: glowColor, transparent: true, opacity: 0.4,
+        color: glowColor, transparent: true, opacity: 0.7,
         side: THREE.DoubleSide, depthWrite: false,
       });
       const ring = new THREE.Mesh(ringGeo, ringMat);
       ring.rotation.x = Math.PI / 2;
       ring.position.z = -22;
       group.add(ring);
-      group.add(new THREE.PointLight(glowColor, 0.8, 80));
+
+      group.add(new THREE.PointLight(glowColor, 2.0, 200));
+
+      sphereMat.emissive = new THREE.Color(glowColor);
+      sphereMat.emissiveIntensity = 0.7;
     }
 
     // POV ring in 3D (separate mesh, not in group, so it stays at base z)
     if (isTracked && pos.alive) {
-      const ringGeo = new THREE.RingGeometry(24, 28, 24);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffff44, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.position.set(pos.x, pos.y, pos.z + 2);
-      valThreeScene.add(ring);
-      valPlayerSpheres[player.name + '_ring'] = { mesh: ring, label: null };
+      const povRingGeo = new THREE.RingGeometry(24, 28, 24);
+      const povRingMat = new THREE.MeshBasicMaterial({ color: 0xffff44, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+      const povRing = new THREE.Mesh(povRingGeo, povRingMat);
+      povRing.position.set(pos.x, pos.y, pos.z + 2);
+      valThreeScene.add(povRing);
+      valPlayerSpheres[player.name + '_ring'] = { mesh: povRing, label: null };
     }
 
     valThreeScene.add(group);
 
-    // Name label sprite
+    // Name label sprite with powerup suffix
     const canvas2 = document.createElement('canvas');
     canvas2.width = 256; canvas2.height = 64;
     const c2 = canvas2.getContext('2d');
     c2.font = isTracked ? 'bold 30px Consolas, monospace' : 'bold 28px Consolas, monospace';
     c2.fillStyle = isTracked ? '#ffff44' : (pos.alive ? '#ffffff' : '#666666');
-    c2.fillText(player.name, 4, 30);
+    let labelText = player.name;
+    if (hasQuad) labelText += ' +Q';
+    if (hasPent) labelText += ' +P';
+    c2.fillText(labelText, 4, 30);
     c2.font = '20px Consolas, monospace';
     c2.fillStyle = '#aaaaaa';
     c2.fillText(`${pos.health}/${pos.armor}`, 4, 54);
@@ -2503,12 +2625,21 @@ function valUpdateThreePlayers() {
   }
 
   if (window._valThreeItemMeshes) {
+    const valTypeState3d = getItemTypeCounts(valDemo.itemEvents, valDemo.staticItems, valTime);
+    const valSeenByType3d = {};
     for (const mesh of window._valThreeItemMeshes) {
       const ik = mesh.userData.itemKey;
       const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
       const isWeapon = ik === 'rl' || ik === 'lg';
       const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
       mesh.visible = (isPowerup && valShowPowerups3d) || (isWeapon && valShowWeapons3d) || (isArmor && valShowArmor3d);
+      if (mesh.visible) {
+        const unavailable = (valTypeState3d.total[ik] || 0) - (valTypeState3d.available[ik] || 0);
+        valSeenByType3d[ik] = (valSeenByType3d[ik] || 0) + 1;
+        const isAvailable = valSeenByType3d[ik] > unavailable;
+        mesh.material.opacity = isAvailable ? 0.75 : 0.15;
+        mesh.material.emissiveIntensity = isAvailable ? 0.6 : 0.05;
+      }
     }
   }
 
