@@ -209,6 +209,9 @@ input[type="range"] { flex: 1; accent-color: #e44; }
       <input type="checkbox" id="showKillMarkers" checked>
       <label for="showKillMarkers">Kill markers</label>
     </div>
+    <label><input type="checkbox" id="showItemsPowerups" checked> Powerups</label>
+    <label><input type="checkbox" id="showItemsWeapons" checked> Weapons</label>
+    <label><input type="checkbox" id="showItemsArmor" checked> Armor</label>
 
     <div class="info-panel" id="infoPanel"></div>
   </div>
@@ -974,7 +977,27 @@ function drawFrame() {
     }
   }
 
-  // Draw player dots
+  // Draw item spawn indicators
+  const itemStates = getItemStates(currentDemo.itemEvents, currentTime);
+  const showPowerups = document.getElementById('showItemsPowerups')?.checked ?? true;
+  const showWeapons = document.getElementById('showItemsWeapons')?.checked ?? true;
+  const showArmor = document.getElementById('showItemsArmor')?.checked ?? true;
+
+  for (const st of Object.values(itemStates)) {
+    const ik = itemKey(st.item);
+    if (!ik) continue;
+    const isPowerup = ik === 'quad' || ik === 'pent' || ik === 'ring';
+    const isWeapon = ik === 'rl' || ik === 'lg';
+    const isArmor = ik === 'ra' || ik === 'ya' || ik === 'ga';
+    if (isPowerup && !showPowerups) continue;
+    if (isWeapon && !showWeapons) continue;
+    if (isArmor && !showArmor) continue;
+
+    const [ix, iy] = worldToCanvas(st.x, st.y);
+    drawItemShape(ctx, ix, iy, ik, st.available ? 0.7 : 0.15);
+  }
+
+  // Draw player dots with cones, pips, and powerup glow
   for (const player of currentDemo.players) {
     if (!enabledTeams.has(player.team) || !enabledPlayers.has(player.name)) continue;
     const pos = snap.positions[player.name];
@@ -985,6 +1008,18 @@ function drawFrame() {
     const color = teamColorMap[player.team];
     const [cx, cy] = worldToCanvas(pos.x, pos.y);
 
+    // Powerup glow (behind everything)
+    if (pos.alive && pos.flags) {
+      if (pos.flags & 4) drawPowerupGlow(ctx, cx, cy, 'quad');
+      if (pos.flags & 8) drawPowerupGlow(ctx, cx, cy, 'pent');
+    }
+
+    // View cone (behind dot)
+    if (pos.alive && pos.yaw !== undefined) {
+      drawViewCone(ctx, cx, cy, pos.yaw, 30, 40, color.cone);
+    }
+
+    // Player dot
     const radius = pos.alive ? 5 : 3;
     ctx.fillStyle = pos.alive ? color.bg : color.dead;
     ctx.beginPath();
@@ -995,6 +1030,11 @@ function drawFrame() {
       ctx.strokeStyle = 'rgba(255,255,255,0.4)';
       ctx.lineWidth = 1;
       ctx.stroke();
+    }
+
+    // Weapon pips
+    if (pos.alive && pos.flags) {
+      drawWeaponPips(ctx, cx, cy, pos.flags);
     }
 
     if (showNames) {
@@ -1186,7 +1226,7 @@ async function init() {
   });
 
   // Display toggles
-  ['showTrail', 'showNames', 'showDeadPlayers', 'showKillMarkers'].forEach(id => {
+  ['showTrail', 'showNames', 'showDeadPlayers', 'showKillMarkers', 'showItemsPowerups', 'showItemsWeapons', 'showItemsArmor'].forEach(id => {
     document.getElementById(id).addEventListener('change', redraw);
   });
   document.getElementById('trailLength').addEventListener('input', redraw);
