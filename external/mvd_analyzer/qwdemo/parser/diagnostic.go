@@ -25,6 +25,8 @@ func (p *Parser) DiagnosticWarnings() []Warning {
 }
 
 // warn records a diagnostic warning. In non-diagnostic mode this is a no-op.
+// In strict mode (which forces diagnostic mode on), the latest warning is
+// also captured as a sticky parseErr that ParseOne returns.
 func (p *Parser) warn(time float64, typ, format string, args ...interface{}) {
 	if !p.diagnosticMode {
 		return
@@ -34,6 +36,7 @@ func (p *Parser) warn(time float64, typ, format string, args ...interface{}) {
 		Type:    typ,
 		Message: fmt.Sprintf(format, args...),
 	})
+	p.strictPromote()
 }
 
 // svcName returns a human-readable name for an svc_* command byte.

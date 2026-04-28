@@ -18,7 +18,7 @@ GIT_TAG    := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "dev")
 BUILD_DATE := $(shell date -u +%Y-%m-%d)
 LDFLAGS    := -ldflags "-s -w -X main.GitHash=$(GIT_HASH) -X main.GitTag=$(GIT_TAG) -X main.BuildDate=$(BUILD_DATE)"
 
-.PHONY: build serve clean test fmt help
+.PHONY: build serve clean test fmt help demopasha-extract
 
 # Build the deployable web bundle into dist/.
 build:
@@ -56,15 +56,26 @@ clean:
 fmt:
 	go fmt ./qwdemo/... ./qwanalytics/... ./qw-web/...
 
+# Build the demopasha-extract CLI: emits dashboard-compatible JSON in
+# the same shape as `mimer --dump-analysis`. Used by the demopasha
+# dashboard glue server when parser=mvd_analyzer is requested. See
+# the parent demopasha repo's docs/superpowers/specs/2026-04-28-mvd-analyzer-integration.md
+# for the integration design.
+demopasha-extract:
+	@mkdir -p bin
+	go build -o bin/demopasha-extract ./qwanalytics/cmd/demopasha-extract
+	@echo "Built: bin/demopasha-extract"
+
 # Help.
 help:
 	@echo "MVD Analyzer — three-module workspace"
 	@echo ""
 	@echo "Usage: make [target]"
 	@echo ""
-	@echo "  build   Build WASM + copy static assets + loc corpus into dist/"
-	@echo "  serve   make build, then python3 -m http.server 8080 in dist/"
-	@echo "  test    Run tests across every module"
-	@echo "  clean   Remove dist/"
-	@echo "  fmt     Format code across every module"
-	@echo "  help    Show this help"
+	@echo "  build               Build WASM + copy static assets + loc corpus into dist/"
+	@echo "  serve               make build, then python3 -m http.server 8080 in dist/"
+	@echo "  test                Run tests across every module"
+	@echo "  clean               Remove dist/"
+	@echo "  fmt                 Format code across every module"
+	@echo "  demopasha-extract   Build the bin/demopasha-extract CLI for demopasha"
+	@echo "  help                Show this help"

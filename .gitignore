@@ -21,3 +21,8 @@ data/
 tmp/
 .DS_Store
 .superpowers/
+
+external/mvd_analyzer/bin/
+external/mvd_analyzer/dist/
+external/mvd_analyzer/qwanalytics/testdata/cache/
+external/mvd_analyzer/demos/

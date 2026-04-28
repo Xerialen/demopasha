@@ -111,6 +111,8 @@ type Parser struct {
 	fteExtensions   uint32 // FTE protocol extension flags
 	diagnosticMode  bool
 	warnings        []Warning
+	strictMode      bool
+	parseErr        error
 
 	// Entity state tracking — fills from svc_modellist, svc_spawnbaseline,
 	// and svc_packetentities / svc_deltapacketentities so the parser
@@ -191,7 +193,10 @@ func (p *Parser) ParseOne() error {
 		}
 		return err
 	}
-	return p.parseMessage(msg)
+	if err := p.parseMessage(msg); err != nil {
+		return err
+	}
+	return p.takeStrictErr()
 }
 
 // parseMessage handles a single demo message

@@ -22,6 +22,13 @@ const PINNACLE_MIMER = '~/demoparser/target/release/mimer';
 const PINNACLE_FTEQW_DEMOS = '~/fteqw-web/demos';
 const DATA_DIR = path.join(__dirname, 'data');
 
+// Local mvd_analyzer build — produced by `make -C ../external/mvd_analyzer demopasha-extract`.
+// When this binary exists and the request opts in (parser=mvd_analyzer or
+// strict=true), the parse runs locally instead of via SSH+mimer.
+const LOCAL_DEMOPASHA_EXTRACT = path.join(
+  __dirname, '..', 'external', 'mvd_analyzer', 'bin', 'demopasha-extract'
+);
+
 // ---- Filename parsing ----
 
 /**
@@ -224,40 +231,98 @@ function loadMapMeta(mapName) {
 
 // ---- Parse endpoint ----
 
-function parseDemoOnPinnacle(source, demoPath) {
+function spawnOrThrow(bin, args, label, opts = {}) {
+  const proc = spawnSync(bin, args, {
+    timeout: opts.timeout ?? 60000,
+    encoding: 'utf-8',
+    maxBuffer: opts.maxBuffer ?? 100 * 1024 * 1024,
+    stdio: opts.stdio,
+  });
+  if (proc.error) {
+    throw new Error(`${label}: ${proc.error.message}`);
+  }
+  if (proc.status !== 0) {
+    const stderr = (proc.stderr || '').toString().trim();
+    throw new Error(`${label}: exit ${proc.status}${stderr ? ` — ${stderr}` : ''}`);
+  }
+  return proc;
+}
+
+function parseDemoOnPinnacle(source, demoPath, opts = {}) {
+  const parserChoice = opts.parser === 'mvd_analyzer' ? 'mvd_analyzer' : 'mimer';
+  const strict = !!opts.strict;
+  if (strict && parserChoice !== 'mvd_analyzer') {
+    // strict only has meaning when the local mvd_analyzer parser is in use;
+    // refusing the request is safer than echoing strict: true while running
+    // a parser that cannot honour it.
+    const err = new Error('strict=true requires parser="mvd_analyzer"; mimer cannot enforce hard-fail semantics');
+    err.statusCode = 400;
+    throw err;
+  }
+
   const basename = path.basename(demoPath);
   const tmpFile = path.join(os.tmpdir(), `glue_${Date.now()}_${basename}`);
+  const remoteDest = `${PINNACLE_FTEQW_DEMOS}/${basename}`;
 
   try {
-    // Step 1: Fetch the demo
+    // Step 1: Fetch the demo into a local temp file. Both paths use spawnSync
+    // with argv arrays so filename metacharacters (quotes, $, etc.) cannot
+    // alter the executed command.
     if (source === 'firehose') {
-      execSync(`ssh servexeri "cat '${demoPath}'" > "${tmpFile}"`, { timeout: 60000 });
+      const fd = fs.openSync(tmpFile, 'w');
+      try {
+        spawnOrThrow('ssh', ['servexeri', '--', 'cat', demoPath], 'ssh servexeri cat', {
+          stdio: ['ignore', fd, 'pipe'],
+          timeout: 60000,
+        });
+      } finally {
+        fs.closeSync(fd);
+      }
     } else {
-      // Local: just copy
       fs.copyFileSync(demoPath, tmpFile);
     }
 
-    // Step 2: Copy demo to pinnacle for FTEQW
-    execSync(`scp "${tmpFile}" pinnaclepowerhouse:${PINNACLE_FTEQW_DEMOS}/${basename}`, { timeout: 60000 });
+    // Step 2: Stage the demo on pinnacle so the dashboard's Replay tab (FTEQW)
+    // can find it. Required for both parser paths — the mvd_analyzer path
+    // runs locally but playback is still pinnacle-side.
+    spawnOrThrow('scp', [tmpFile, `pinnaclepowerhouse:${remoteDest}`], 'scp to pinnacle', { timeout: 60000 });
 
-    // Step 3: Parse on pinnacle
-    const parseResult = execSync(
-      `ssh pinnaclepowerhouse "${PINNACLE_MIMER} ${PINNACLE_FTEQW_DEMOS}/${basename} --dump-analysis"`,
-      { timeout: 120000, encoding: 'utf-8', maxBuffer: 100 * 1024 * 1024 }
-    );
+    let parseResult;
+    if (parserChoice === 'mvd_analyzer') {
+      if (!fs.existsSync(LOCAL_DEMOPASHA_EXTRACT)) {
+        throw new Error(`mvd_analyzer requested but ${LOCAL_DEMOPASHA_EXTRACT} not built — run: (cd external/mvd_analyzer && make demopasha-extract)`);
+      }
+      const args = strict ? ['-strict', tmpFile] : [tmpFile];
+      const proc = spawnOrThrow(LOCAL_DEMOPASHA_EXTRACT, args, 'demopasha-extract', { timeout: 120000 });
+      parseResult = proc.stdout;
+    } else {
+      // SSH/exec form: argv-array invocation of `ssh pinnaclepowerhouse <cmd>`.
+      // The remote shell still parses its argv, so we shell-escape the
+      // remote args as a defence in depth — basename is already safe via
+      // path.basename but we don't trust it implicitly.
+      const remoteCmd = `${PINNACLE_MIMER} ${shellEscape(remoteDest)} --dump-analysis`;
+      const proc = spawnOrThrow('ssh', ['pinnaclepowerhouse', '--', remoteCmd], 'ssh pinnacle mimer', { timeout: 120000 });
+      parseResult = proc.stdout;
+    }
 
-    // Step 4: Transform
     const parsed = JSON.parse(parseResult);
     const demo = transformMimerJson(parseResult, basename);
+    demo.parser = parserChoice;
     const map = loadMapMeta(demo.map);
     const quality_metrics = (parsed.position_timeline || {}).quality_metrics || null;
     const data_quality = parsed.data_quality || null;
 
-    return { map, demo, quality_metrics, data_quality };
+    return { map, demo, quality_metrics, data_quality, parser: parserChoice, strict };
   } finally {
-    // Cleanup temp file
     try { fs.unlinkSync(tmpFile); } catch {}
   }
+}
+
+// shellEscape wraps an argument in single quotes for /bin/sh, escaping
+// any embedded single quotes. Used on the remote side of SSH where the
+// argv vector becomes a shell command line again.
+function shellEscape(s) {
+  return `'${String(s).replace(/'/g, "'\\''")}'`;
 }
 
 // ---- HTTP Server ----
@@ -312,20 +377,21 @@ const server = http.createServer((req, res) => {
     req.on('data', chunk => { body += chunk; });
     req.on('end', () => {
       try {
-        const { source, path: demoPath } = JSON.parse(body);
+        const { source, path: demoPath, parser, strict } = JSON.parse(body);
         if (!source || !demoPath) {
           sendError(res, 400, 'source and path are required');
           return;
         }
-        console.log(`[parse] source=${source} path=${demoPath}`);
+        const opts = { parser: parser === 'mvd_analyzer' ? 'mvd_analyzer' : 'mimer', strict: !!strict };
+        console.log(`[parse] source=${source} parser=${opts.parser} strict=${opts.strict} path=${demoPath}`);
         const startTime = Date.now();
-        const result = parseDemoOnPinnacle(source, demoPath);
+        const result = parseDemoOnPinnacle(source, demoPath, opts);
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-        console.log(`[parse] done in ${elapsed}s — ${result.demo.map} / ${result.demo.snapshots.length} snapshots / ${result.demo.kills.length} kills`);
+        console.log(`[parse] done in ${elapsed}s via ${opts.parser} — ${result.demo.map} / ${result.demo.snapshots.length} snapshots / ${result.demo.kills.length} kills`);
         sendJson(res, 200, result);
       } catch (err) {
         console.error('[parse] error:', err.message);
-        sendError(res, 500, err.message);
+        sendError(res, err.statusCode || 500, err.message);
       }
     });
     return;
@@ -337,5 +403,10 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`Glue server running at http://localhost:${PORT}`);
   console.log(`  GET  /demos?source=firehose|local`);
-  console.log(`  POST /parse { source, path }`);
+  console.log(`  POST /parse { source, path, parser?: "mimer"|"mvd_analyzer", strict?: bool }`);
+  if (fs.existsSync(LOCAL_DEMOPASHA_EXTRACT)) {
+    console.log(`  ✓ mvd_analyzer extract binary found at ${LOCAL_DEMOPASHA_EXTRACT}`);
+  } else {
+    console.log(`  ! mvd_analyzer extract not built — defaults to mimer over SSH`);
+  }
 });
