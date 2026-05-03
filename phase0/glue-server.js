@@ -356,6 +356,41 @@ const server = http.createServer((req, res) => {
 
   const url = new URL(req.url, `http://localhost:${PORT}`);
 
+  // GET / — serve the dashboard so it lives on the same origin as the
+  // /demos and /parse endpoints (avoids file:// fetch failures).
+  if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/dashboard.html')) {
+    try {
+      const html = fs.readFileSync(path.join(__dirname, 'dashboard.html'), 'utf-8');
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(html);
+    } catch (err) {
+      sendError(res, 500, `dashboard.html not readable: ${err.message}`);
+    }
+    return;
+  }
+
+  // GET /data/<...> — passthrough for static map images (topdown PNGs etc.)
+  if (req.method === 'GET' && url.pathname.startsWith('/data/')) {
+    const safePath = path.normalize(url.pathname.slice(1));
+    if (safePath.startsWith('..') || path.isAbsolute(safePath)) {
+      sendError(res, 400, 'invalid path');
+      return;
+    }
+    const fp = path.join(__dirname, safePath);
+    try {
+      const buf = fs.readFileSync(fp);
+      const ext = path.extname(fp).toLowerCase();
+      const ct = ext === '.png' ? 'image/png'
+        : ext === '.json' ? 'application/json'
+        : 'application/octet-stream';
+      res.writeHead(200, { 'Content-Type': ct });
+      res.end(buf);
+    } catch (err) {
+      sendError(res, 404, `not found: ${safePath}`);
+    }
+    return;
+  }
+
   // GET /demos
   if (req.method === 'GET' && url.pathname === '/demos') {
     const source = url.searchParams.get('source');
@@ -400,7 +435,9 @@ const server = http.createServer((req, res) => {
   sendError(res, 404, 'Not found');
 });
 
-server.listen(PORT, '127.0.0.1', () => {
+// Bind to 0.0.0.0 so LAN-side tooling (Playwright on pinnacle, dashboard
+// served from another host) can reach the glue. CORS is already wide open.
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Glue server running at http://localhost:${PORT}`);
   console.log(`  GET  /demos?source=firehose|local`);
   console.log(`  POST /parse { source, path, parser?: "mimer"|"mvd_analyzer", strict?: bool }`);

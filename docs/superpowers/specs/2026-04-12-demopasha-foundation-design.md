@@ -124,10 +124,25 @@ lives in Phase D only, conditional on Workstreams 1–4 landing green.
   `bytes_unknown == 0` is the pass bar.
 - `cargo fuzz` harnesses on the frame and message parsers. Invariants:
   `should_not_panic`, `should_consume_all_bytes_or_error_precisely`.
+- **Reconstruction sufficiency:** the structured parser output must be
+  sufficient to reconstruct a semantically-equivalent MVD — not just to
+  decode one. Any field, flag, or delta base reference whose loss would
+  prevent an independent encoder from producing a semantically-equivalent
+  demo must be preserved in the structured output. "Semantically
+  equivalent" means: when played back through a reference renderer
+  (ezQuake / FTE) with deterministic settings, every frame renders
+  identically up to pixel-diff tolerance, and every hidden-message field
+  (KTXstats, damage events, weapon instructions, timestamps) survives
+  intact. This is a stricter reading of "no `Other` variant" and is
+  cheap to guarantee now, expensive to retrofit later. Enables the
+  Phase D visual-playback parity check (see §9) without rearchitecting
+  the parser output.
 
 **Pass criterion:** across all 1,315 demos in the corpus:
 `bytes_unknown == 0` AND zero parser errors AND zero panics under 1-hour
-fuzzing per harness.
+fuzzing per harness AND structured-output → encoder → parser roundtrip
+produces a semantically-equivalent model (field-by-field equality on the
+structured model, not byte equality on the wire).
 
 **Language:** Rust. `cargo fuzz` tooling and zero-cost abstractions are
 decisive.
